@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import Foundation
-import RegexBuilder
 import System
 
 import ArgumentParser
@@ -16,7 +15,7 @@ extension Solutions.Year2022 {
 
         static func elves(parsing string: String) -> [Elf] {
             return string
-                .matches(of: Regex { Elf.Parser() })
+                .matches(of: Elf.Parser())
                 .map(\.output)
         }
 
