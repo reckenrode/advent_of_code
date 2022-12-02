@@ -22,7 +22,8 @@ let package = Package(
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 "AdventCommon"
-            ]
+            ],
+            swiftSettings: [.unsafeFlags(["-enable-bare-slash-regex"])]
         ),
         .target(
             name: "AdventCommon",
