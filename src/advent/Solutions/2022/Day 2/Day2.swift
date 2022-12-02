@@ -14,34 +14,23 @@ extension Solutions.Year2022 {
 
         @Argument(help: "puzzle input") var input: FilePath
 
-        func plays(parsing file: FilePath) throws -> [(RPSPlay, RPSPlay, RPSOutcome)] {
+        func plays(parsing file: FilePath) throws -> [(Substring, Substring)] {
             guard let path = URL(filePath: file, directoryHint: .notDirectory) else { return [] }
 
             let content = try String(contentsOf: path)
             return content
-                .matches(of: Regex {
-                    TryCapture("A"..."C", transform: RPSPlay.init)
-                    " "
-                    TryCapture("X"..."Z", transform: { string -> (RPSPlay, RPSOutcome)? in
-                        guard let play = RPSPlay(parsing: string) else { return nil }
-                        guard let outcome = RPSOutcome(parsing: string) else { return nil }
-                        return (play, outcome)
-                    })
-                    One(.newlineSequence)
-                })
-                .map { ($0.1, $0.2.0, $0.2.1) }
+                .matches(of: /([ABC]) ([XYZ])\n/)
+                .map { ($0.1, $0.2) }
         }
 
         func run() throws {
-            let plays = try plays(parsing: self.input)
-            let (scoreMethod1, scoreMethod2) = plays
-                .map { round in
-                    let (theirPlay, myPlay, desiredOutcome) = round
+            let (scoreMethod1, scoreMethod2) = try plays(parsing: self.input)
+                .map { play in
+                    let (them, me) = play
 
-                    let firstScore = myPlay.score(against: theirPlay)
-
-                    let myNewPlay = desiredOutcome.shouldPlay(against: theirPlay)
-                    let secondScore = myNewPlay.score(against: theirPlay)
+                    let firstScore = me.score(against: them)
+                    let myPlay = me.shouldPlay(against: them)
+                    let secondScore = myPlay.score(against: them)
 
                     return (firstScore, secondScore)
                 }
@@ -49,6 +38,36 @@ extension Solutions.Year2022 {
 
             print("Total score (my way): \(scoreMethod1.reduce(0, +))")
             print("Total score (elf way): \(scoreMethod2.reduce(0, +))")
+        }
+    }
+}
+
+fileprivate let playValues = ["A": 1, "B": 2, "C": 3, "X": 1, "Y": 2, "Z": 3]
+
+
+extension StringProtocol {
+    fileprivate func score(against other: Self) -> Int {
+        let selfPlay = ["X": "A", "Y": "B", "Z": "C"][self] ?? String(self)
+        switch (selfPlay, other) {
+        case ("B", "A"), ("A", "C"), ("C", "B"):
+            return 6 + (playValues[selfPlay] ?? 0)
+        case ("A", "A"), ("B", "B"), ("C", "C"):
+            return 3 + (playValues[selfPlay] ?? 0)
+        default:
+            return 0 + (playValues[selfPlay] ?? 0)
+        }
+    }
+
+    fileprivate func shouldPlay(against other: Self) -> Self {
+        switch (self, other) {
+        case ("Z", "A"), ("X", "C"), ("Y", "B"):
+            return "B"
+        case ("Z", "B"), ("X", "A"), ("Y", "C"):
+            return "C"
+        case ("Z", "C"), ("X", "B"), ("Y", "A"):
+            return "A"
+        default:
+            fatalError("Unexpected RPS instruction.")
         }
     }
 }
