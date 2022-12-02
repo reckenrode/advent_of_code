@@ -9,6 +9,7 @@ extension Advent {
             abstract: "Run 2022 solutions to Advent of Code.",
             subcommands: [
                 Solutions.Year2022.Day1.self,
+                Solutions.Year2022.Day2.self,
             ]
         )
     }
