@@ -7,7 +7,13 @@ extension Advent {
         static var configuration = CommandConfiguration(
             commandName: "2022",
             abstract: "Run 2022 solutions to Advent of Code.",
-            subcommands: []
+            subcommands: [
+                Solutions.Year2022.Day1.self,
+            ]
         )
     }
+}
+
+extension Solutions {
+    enum Year2022 { }
 }

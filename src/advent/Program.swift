@@ -9,3 +9,5 @@ struct Advent: ParsableCommand {
         subcommands: [Advent.Year2022.self]
     )
 }
+
+enum Solutions { }
