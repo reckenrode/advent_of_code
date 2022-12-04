@@ -35,14 +35,13 @@ extension Solutions.Year2022 {
             let assignments = try read(file: self.input)
 
             let fullyMatched = assignments.filter { assignment in
-                assignment.first.contains(assignment.second)
-                || assignment.second.contains(assignment.first)
+                assignment.first.isSuperset(of: assignment.second)
+                || assignment.second.isSuperset(of: assignment.first)
             }
             print("Number of assignments that fully overlap: \(fullyMatched.count)")
 
             let overlappingMatches = assignments.filter { assignment in
-                assignment.first.overlaps(assignment.second)
-                || assignment.second.overlaps(assignment.first)
+                !assignment.first.isDisjoint(with: assignment.second)
             }
             print("Number of assignments that overlap at all: \(overlappingMatches.count)")
         }
