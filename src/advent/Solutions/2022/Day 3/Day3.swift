@@ -3,6 +3,7 @@
 import Foundation
 import System
 
+import Algorithms
 import ArgumentParser
 
 import AdventCommon
@@ -29,7 +30,7 @@ extension Solutions.Year2022 {
             print("Sum of priorities (by pocket): \(priorities.reduce(0, +))")
 
             let elfBadges = sacks
-                .chunking(upTo: 3)
+                .chunks(ofCount: 3)
                 .flatMap { $0[0].shared(with: $0[1...]) }
             let badgePriorities = elfBadges.map(\.score)
             print("Sum of priorities (by group): \(badgePriorities.reduce(0, +))")
