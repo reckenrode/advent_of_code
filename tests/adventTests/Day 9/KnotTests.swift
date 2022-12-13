@@ -3,6 +3,8 @@
 import XCTest
 @testable import advent
 
+import AdventCommon
+
 final class KnotTests: XCTestCase {
     // MARK: - distance(to:)
     func testDistanceToTargetHorizontally() {

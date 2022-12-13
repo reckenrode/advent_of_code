@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
+import AdventCommon
+
 extension Solutions.Year2022.Day9 {
     struct Knot {
         var name: String
         var position = Point.origin
 
         func distance(to other: Knot) -> Int {
-            let xDelta = self.position.x - other.position.x
-            let yDelta = self.position.y - other.position.y
-            return Int(Float64(xDelta * xDelta + yDelta * yDelta).squareRoot())
+            return self.position.distance(to: other.position)
         }
 
         mutating func move(towards other: Knot, by amount: Int) {

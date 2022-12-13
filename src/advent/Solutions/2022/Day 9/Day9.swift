@@ -6,6 +6,8 @@ import System
 
 import ArgumentParser
 
+import AdventCommon
+
 extension Solutions.Year2022 {
     struct Day9: ParsableCommand {
         static var configuration = CommandConfiguration(abstract: "Rope Bridge")
