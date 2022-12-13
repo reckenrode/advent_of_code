@@ -19,6 +19,7 @@ extension Advent {
                 Solutions.Year2022.Day9.self,
                 Solutions.Year2022.Day10.self,
                 Solutions.Year2022.Day11.self,
+                Solutions.Year2022.Day12.self,
             ]
         )
     }
