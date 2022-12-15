@@ -9,7 +9,7 @@ import AdventCommon
 
 extension Solutions.Year2022 {
     struct Day14: ParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Distress Signal")
+        static var configuration = CommandConfiguration(abstract: "Regolith Reservoir")
         
         @Argument(help: "puzzle input") var input: FilePath
 
