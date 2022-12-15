@@ -59,14 +59,15 @@ extension Solutions.Year2022 {
         }
 
         func findSignalPosition(with sensors: [Sensor], in bounds: ClosedRange<Int>) -> Point? {
-            for y in bounds {
-                let spans = renderSpans(for: y, with: sensors, clampedTo: bounds)
-                let gaps = findGaps(in: spans)
-                if gaps.count > 0 {
+            return bounds.lazy
+                .compactMap { y in
+                    let spans = renderSpans(for: y, with: sensors, clampedTo: bounds)
+                    let gaps = findGaps(in: spans)
+                    guard gaps.count > 0 else { return nil }
+
                     return Point(x: gaps[0].lowerBound, y: y)
                 }
-            }
-            return nil
+                .first
         }
 
         // MARK: - Span rendering
