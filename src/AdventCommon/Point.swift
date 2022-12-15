@@ -25,6 +25,10 @@ public struct Point: Equatable, Hashable {
         return Int(Float64(xDelta * xDelta + yDelta * yDelta).squareRoot())
     }
 
+    public func taxicabDistance(to other: Point) -> Int {
+        return abs(self.x - other.x) + abs(self.y - other.y)
+    }
+
     // MARK: - Operators
 
     public static func +(lhs: Point, rhs: Offset) -> Point {
