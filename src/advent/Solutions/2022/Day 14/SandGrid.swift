@@ -107,6 +107,7 @@ struct SandGrid {
                 return pt
             default:
                 self[particle] = "o"
+                self.restingSandCount += 1
                 return nil
             }
         }
@@ -122,10 +123,7 @@ struct SandGrid {
         }
     }
 
-    var restingSandCount: Int {
-        let o = ("o" as Character).asciiValue!
-        return self.bitmap.filter({ element in element == o }).count
-    }
+    var restingSandCount: Int = 0
 
     // MARK: - Printing
 
