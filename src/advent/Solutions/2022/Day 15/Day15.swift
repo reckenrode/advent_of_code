@@ -30,8 +30,7 @@ extension Solutions.Year2022 {
             let coverage = countCoverage(
                 by: sensors,
                 at: self.checkRow,
-                in: extrema.min.x...extrema.max.x,
-                beacons: Set(sensors.map(\.detectedBeacon))
+                in: extrema.min.x...extrema.max.x
             )
             print("Positions that cannot contain a beacon in row \(self.checkRow): \(coverage)")
 
@@ -47,25 +46,16 @@ extension Solutions.Year2022 {
         func countCoverage(
             by sensors: [Sensor],
             at row: Int,
-            in bounds: ClosedRange<Int>,
-            beacons: Set<Point>
+            in bounds: ClosedRange<Int>
         ) -> Int {
-            var result = 0
-            for x in bounds {
-                for sensor in sensors {
-                    guard result != bounds.count else { return result }
-
-                    let point = Point(x: x, y: row)
-                    let shouldIncrement = !beacons.contains(point)
-                        && sensor.position.taxicabDistance(to: point) <= sensor.radius
-
-                    if shouldIncrement {
-                        result += 1
-                        break
-                    }
-                }
+            let beacons = Set(
+                sensors.compactMap { $0.detectedBeacon.y == row ? $0.detectedBeacon.x : nil }
+            )
+            let spans = renderSpans(for: row, with: sensors, clampedTo: bounds)
+            return spans.reduce(0) { acc, span in
+                let beaconsInSpan = beacons.lazy.filter(span.contains)
+                return acc + span.count - beaconsInSpan.count
             }
-            return result
         }
 
         func findSignalPosition(with sensors: [Sensor], in bounds: ClosedRange<Int>) -> Point? {
