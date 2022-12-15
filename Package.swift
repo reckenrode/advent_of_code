@@ -33,6 +33,8 @@ let package = Package(
             name: "AdventCommon",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+                .product(name: "Collections", package: "swift-collections"),
             ]
         ),
         .testTarget(
