@@ -70,8 +70,8 @@ extension Solutions.Year2022 {
 
         func findSignalPosition(with sensors: [Sensor], in bounds: ClosedRange<Int>) -> Point? {
             for y in bounds {
-                let spans = coalesce(spans: renderSpans(for: y, with: sensors, clampedTo: bounds))
-                let gaps = findGaps(in: spans, clampedTo: bounds)
+                let spans = renderSpans(for: y, with: sensors, clampedTo: bounds)
+                let gaps = findGaps(in: spans)
                 if gaps.count > 0 {
                     return Point(x: gaps[0].lowerBound, y: y)
                 }
@@ -79,51 +79,32 @@ extension Solutions.Year2022 {
             return nil
         }
 
-        // MARK: - Utilities
+        // MARK: - Span rendering
 
         func coalesce(spans: [ClosedRange<Int>]) -> [ClosedRange<Int>] {
-            let spans = spans.sorted { lhs, rhs in
-                return lhs.lowerBound < rhs.lowerBound
-                || (lhs.lowerBound == rhs.lowerBound && lhs.upperBound < rhs.upperBound)
-            }
+            func loop(
+                over slice: Array<ClosedRange<Int>>.SubSequence,
+                current: ClosedRange<Int>,
+                result: List<ClosedRange<Int>>
+            ) -> [ClosedRange<Int>] {
+                guard let span = slice.first else { return List.cons(current, result).reversed() }
 
-            guard var current = spans.first else { return [] }
-            var result: [ClosedRange<Int>] = spans[1...].reduce(into: []) { acc, span in
-                if current.isDisjoint(with: span) {
-                    acc.append(current)
-                    current = span
+                let next = slice[slice.index(after: slice.startIndex)...]
+                if !current.overlaps(span) {
+                    return loop(over: next, current: span, result: .cons(current, result))
                 } else {
-                    current = current.lowerBound...max(current.upperBound, span.upperBound)
-                }
-            }
-            result.append(current)
-
-            return result
-        }
-
-        func findGaps(
-            in spans: [ClosedRange<Int>],
-            clampedTo bounds: ClosedRange<Int>
-        ) -> [ClosedRange<Int>] {
-            var result: [ClosedRange<Int>] = []
-
-            var x = bounds.lowerBound
-            var index = spans.startIndex
-            while index < spans.endIndex, x < bounds.upperBound {
-                let span = spans[index]
-                if x < span.lowerBound {
-                    result.append(x...(span.lowerBound - 1))
-                    x = span.upperBound + 1
-                    index = spans.index(after: index)
-                } else if span.contains(x) {
-                    x = span.upperBound + 1
-                    index = spans.index(after: index)
-                } else {
-                    index = spans.index(after: index)
+                    return loop(
+                        over: next,
+                        current: current.lowerBound...max(current.upperBound, span.upperBound),
+                        result: result
+                    )
                 }
             }
 
-            return result
+            guard let first = spans.first else { return [] }
+
+            let nextIndex = spans.index(after: spans.startIndex)
+            return loop(over: spans[nextIndex...], current: first, result: .empty)
         }
 
         func renderSpans(
@@ -131,16 +112,52 @@ extension Solutions.Year2022 {
             with sensors: [Sensor],
             clampedTo bounds: ClosedRange<Int>
         ) -> [ClosedRange<Int>] {
-            let resultSet: Set<ClosedRange<Int>> = sensors
-                .reduce(into: []) { acc, sensor in
+            let spans: [ClosedRange<Int>] = sensors
+                .compactMap { sensor in
                     let offset = sensor.radius - abs(row - sensor.position.y)
                     let lowerBound = sensor.position.x - offset
                     let upperBound = sensor.position.x + offset
-                    if lowerBound <= upperBound {
-                        acc.insert((lowerBound...upperBound).clamped(to: bounds))
-                    }
+                    guard lowerBound <= upperBound else { return nil }
+                    return (lowerBound...upperBound).clamped(to: bounds)
                 }
-            return Array(resultSet)
+                .sorted { lhs, rhs in
+                    return lhs.lowerBound < rhs.lowerBound
+                    || (lhs.lowerBound == rhs.lowerBound && lhs.upperBound < rhs.upperBound)
+                }
+            return coalesce(spans: spans)
+        }
+
+
+        // MARK: - Utilities
+
+        func findGaps(in spans: [ClosedRange<Int>]) -> [ClosedRange<Int>] {
+            func loop(
+                over slice: Array<ClosedRange<Int>>.SubSequence,
+                at position: Int,
+                result: List<ClosedRange<Int>>
+            ) -> [ClosedRange<Int>] {
+                guard let span = slice.first else { return result.reversed() }
+
+                let next = slice[slice.index(after: slice.startIndex)...]
+                if position < span.lowerBound {
+                    return loop(
+                        over: next,
+                        at: span.upperBound + 1,
+                        result: .cons(position...(span.lowerBound - 1), result)
+                    )
+                } else if span.contains(position) {
+                    return loop(over: next, at: span.upperBound + 1, result: result)
+                } else {
+                    return loop(over: next, at: position, result: result)
+                }
+            }
+            guard let first = spans.first else { return [] }
+
+            return loop(
+                over: spans[spans.index(after: spans.startIndex)...],
+                at: first.upperBound + 1,
+                result: .empty
+            )
         }
 
         func largestArea(around sensor: Sensor) -> (min: Point, max: Point) {
