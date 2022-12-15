@@ -72,29 +72,21 @@ extension Solutions.Year2022 {
         // MARK: - Span rendering
 
         func coalesce(spans: [ClosedRange<Int>]) -> [ClosedRange<Int>] {
-            func loop(
-                over slice: Array<ClosedRange<Int>>.SubSequence,
-                current: ClosedRange<Int>,
-                result: List<ClosedRange<Int>>
-            ) -> [ClosedRange<Int>] {
-                guard let span = slice.first else { return List.cons(current, result).reversed() }
-
-                let next = slice[slice.index(after: slice.startIndex)...]
-                if !current.overlaps(span) {
-                    return loop(over: next, current: span, result: .cons(current, result))
-                } else {
-                    return loop(
-                        over: next,
-                        current: current.lowerBound...max(current.upperBound, span.upperBound),
-                        result: result
-                    )
-                }
-            }
-
             guard let first = spans.first else { return [] }
 
-            let nextIndex = spans.index(after: spans.startIndex)
-            return loop(over: spans[nextIndex...], current: first, result: .empty)
+            let (current, result): (ClosedRange<Int>, List<ClosedRange<Int>>) = spans[1...]
+                .reduce((first, .empty)) { state, span in
+                    let (current, result) = state
+                    if !current.overlaps(span) {
+                        return (span, .cons(current, result))
+                    } else {
+                        return (
+                            current.lowerBound...max(current.upperBound, span.upperBound),
+                            result
+                        )
+                    }
+                }
+            return List.cons(current, result).reversed()
         }
 
         func renderSpans(
@@ -121,33 +113,23 @@ extension Solutions.Year2022 {
         // MARK: - Utilities
 
         func findGaps(in spans: [ClosedRange<Int>]) -> [ClosedRange<Int>] {
-            func loop(
-                over slice: Array<ClosedRange<Int>>.SubSequence,
-                at position: Int,
-                result: List<ClosedRange<Int>>
-            ) -> [ClosedRange<Int>] {
-                guard let span = slice.first else { return result.reversed() }
-
-                let next = slice[slice.index(after: slice.startIndex)...]
-                if position < span.lowerBound {
-                    return loop(
-                        over: next,
-                        at: span.upperBound + 1,
-                        result: .cons(position...(span.lowerBound - 1), result)
-                    )
-                } else if span.contains(position) {
-                    return loop(over: next, at: span.upperBound + 1, result: result)
-                } else {
-                    return loop(over: next, at: position, result: result)
-                }
-            }
             guard let first = spans.first else { return [] }
 
-            return loop(
-                over: spans[spans.index(after: spans.startIndex)...],
-                at: first.upperBound + 1,
-                result: .empty
-            )
+            let (_, result): (Int, List<ClosedRange<Int>>) = spans[1...]
+                .reduce((first.upperBound + 1, .empty)) { state, span in
+                    let (position, result) = state
+                    if position < span.lowerBound {
+                        return (
+                            span.upperBound + 1,
+                            .cons(position...(span.lowerBound - 1), result)
+                        )
+                    } else if span.contains(position) {
+                        return (span.upperBound + 1, result)
+                    } else {
+                        return state
+                    }
+                }
+            return result.reversed()
         }
 
         func largestArea(around sensor: Sensor) -> (min: Point, max: Point) {
