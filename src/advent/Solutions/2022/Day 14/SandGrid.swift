@@ -76,6 +76,9 @@ struct SandGrid {
 
     // MARK: - Puzzle stuff
 
+    var width: Int { self.viewport.width }
+    var height: Int { self.viewport.height }
+
     mutating func dropSand(at point: Int) {
         let point = Point(x: point, y: 0)
         precondition(self.viewport.contains(point))
