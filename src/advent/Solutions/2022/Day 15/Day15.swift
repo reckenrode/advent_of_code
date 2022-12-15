@@ -43,11 +43,7 @@ extension Solutions.Year2022 {
 
         // MARK: - Puzzle stuff
 
-        func countCoverage(
-            by sensors: [Sensor],
-            at row: Int,
-            in bounds: ClosedRange<Int>
-        ) -> Int {
+        func countCoverage(by sensors: [Sensor], at row: Int, in bounds: ClosedRange<Int>) -> Int {
             let beacons = Set(
                 sensors.compactMap { $0.detectedBeacon.y == row ? $0.detectedBeacon.x : nil }
             )
