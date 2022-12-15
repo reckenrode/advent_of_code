@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
-public struct Offset {
+public struct Offset: Equatable {
     public let x: Int
     public let y: Int
 
