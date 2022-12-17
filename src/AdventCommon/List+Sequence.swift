@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 extension List: IteratorProtocol, Sequence {
-    public mutating func next() -> Self.Element? {
+    public mutating func next() -> Element? {
         switch self {
         case .empty:
             return nil
