@@ -76,11 +76,10 @@ extension Solutions.Year2022 {
         func run() throws {
             let puzzle = try AreaMap.load(contentsOfFile: self.input)
 
-
-            guard
-                let path = puzzle.map.findPath(from: puzzle.start, to: puzzle.end),
-                path.count > 0
-            else { fatalError("There is no path to the position with the best signal") }
+            let path = puzzle.map.findPath(from: puzzle.start, to: puzzle.end)
+            guard path.count > 0 else {
+                fatalError("There is no path to the position with the best signal")
+            }
 
             print("Steps required to reach the position (from the given start): \(path.count - 1)")
 
@@ -89,10 +88,11 @@ extension Solutions.Year2022 {
 
             let starts = (0..<puzzle.map.height)
                 .flatMap { row in return (0..<puzzle.map.width).map { Point(x: $0, y: row) } }
-                .filter { puzzle.map[$0.x, $0.y] == ("a" as Character).asciiValue! }
+                .filter { puzzle.map[$0] == ("a" as Character).asciiValue! }
 
             let shortestA = starts
-                .compactMap { puzzle.map.findPath(from: $0, to: puzzle.end) }
+                .map { puzzle.map.findPath(from: $0, to: puzzle.end) }
+                .filter { $0.count != 0 }
                 .min { $0.count < $1.count }
             guard let shortestA else { fatalError("The map had no a-elevations. How odd.") }
 

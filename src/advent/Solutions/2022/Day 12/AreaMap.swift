@@ -8,18 +8,18 @@ import Collections
 
 import AdventCommon
 
-struct AreaMap {
+struct AreaMap: Graph {
+    typealias Element = UInt8
+    typealias Index = Point
+
     let width: Int
     let height: Int
     fileprivate let contents: Data
 
     // MARK: - Indexing
 
-    subscript(x: Int, y: Int) -> UInt8? {
-        guard x >= 0, x < self.width else { return nil }
-        guard y >= 0, y < self.height else { return nil }
-
-        return self.contents[self.width * y + x]
+    subscript(index: Self.Index) -> UInt8 {
+        return self.contents[self.width * index.y + index.x]
     }
 
     // MARK: - Introspection / Printing
@@ -93,9 +93,25 @@ struct AreaMap {
         )
     }
 
+    // MARK: - Graph conformance
+
+    var count: Int { self.width * self.height }
+
+    var indices: [Point] {
+        Array((0..<self.width).flatMap { x in (0..<self.height).map { y in Point(x: x, y: y) } })
+    }
+
     // MARK: - Path-finding
 
-    private func neighbors(of point: Point) -> [Point] {
+    private func inBounds(_ point: Point) -> Bool {
+        return point.x >= 0 && point.x < self.width && point.y >= 0 && point.y < self.height
+    }
+
+    func distance(from first: Self.Index, to second: Self.Index) -> Int {
+        return first.distance(to: second)
+    }
+
+    func neighbors(of point: Point) -> [Point] {
         let candidates = [
             Point(x: point.x - 1, y: point.y),
             Point(x: point.x + 1, y: point.y),
@@ -103,87 +119,12 @@ struct AreaMap {
             Point(x: point.x, y: point.y + 1),
         ]
         return candidates.filter { neighbor in
-            guard
-                let myElevation = self[point.x, point.y],
-                let neighborElevation = self[neighbor.x, neighbor.y]
-            else { return false }
-
-            return neighborElevation <= 1 + myElevation
+            guard self.inBounds(point), self.inBounds(neighbor) else { return false }
+            return self[neighbor] <= 1 + self[point]
         }
     }
 
-    struct Node: Comparable {
-        let point: Point
-        let distance: Int
-
-        static func < (lhs: AreaMap.Node, rhs: AreaMap.Node) -> Bool {
-            return lhs.distance < rhs.distance
-            || (lhs.distance == rhs.distance && lhs.point < rhs.point)
-        }
-    }
-
-    func findPath(from start: Point, to end: Point) -> [Point]? {
-        var distances = Array(
-            repeating: Array(repeating: Int.max, count: self.height),
-            count: self.width
-        )
-        distances[start.x][start.y] = 0
-
-        var visited = Array(
-            repeating: Array(repeating: false, count: self.height),
-            count: self.width
-        )
-
-        var prevNode = Array(
-            repeating: Array(repeating: Point.origin, count: self.height),
-            count: self.width
-        )
-
-        var visiting = Heap(
-            (0..<self.height).flatMap { row in
-                (0..<self.width).map { col in
-                    return Node(
-                        point: Point(x: col, y: row),
-                        distance: distances[col][row]
-                    )
-                }
-            }
-        )
-
-        while let next = visiting.popMin() {
-            guard next.distance != Int.max, !visited[next.point.x][next.point.y] else { break }
-
-            let current = next.point
-
-            let currentDistance = distances[current.x][current.y]
-            self.neighbors(of: current)
-                .forEach { neighbor in
-                    guard !visited[neighbor.x][neighbor.y] else { return }
-
-                    let neighborDistance = currentDistance + current.distance(to: neighbor)
-                    if neighborDistance < distances[neighbor.x][neighbor.y] {
-                        prevNode[neighbor.x][neighbor.y] = current
-                        distances[neighbor.x][neighbor.y] = neighborDistance
-                        visiting.insert(Node(point: neighbor, distance: neighborDistance))
-                    }
-                }
-            visited[current.x][current.y] = true
-        }
-
-        guard distances[end.x][end.y] != Int.max else { return nil }
-
-        // Walk the distances grid to find the shortest path nodes.
-        // It’s not needed for the solution, but it lets the path be pretty printed to the console.
-        let result = sequence(state: (end, distances[end.x][end.y])) { state -> Point? in
-            let (current, distance) = state
-            guard distance >= 0 else { return nil }
-            if current == start {
-                state = (current, -1)
-            } else {
-                state = (prevNode[current.x][current.y], distances[current.x][current.y])
-            }
-            return current
-        }
-        return result.reversed()
+    func findPath(from start: Point, to end: Point) -> [Point] {
+        return Array(self.path(from: start, to: end))
     }
 }
