@@ -19,11 +19,24 @@ public enum List<Element> {
         self = other
     }
 
+    public var isEmpty: Bool {
+        if case .empty = self { return true } else { return false }
+    }
+
     public init(ofOne element: Element) {
         self = .cons(element, .empty)
     }
 
-    public func pushFront(_ element: Element) -> List<Element> {
+    public func pop() -> (Element, Self)? {
+        switch self {
+        case .empty:
+            return nil
+        case .cons(let car, let cdr):
+            return (car, cdr)
+        }
+    }
+
+    public func prepend(_ element: Element) -> List<Element> {
         return .cons(element, self)
     }
 }
