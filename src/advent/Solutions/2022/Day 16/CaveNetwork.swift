@@ -35,6 +35,7 @@ struct CaveNetwork: Graph {
 
         let rawStorage = vertices.enumerated().map { ($1.valve, ($0, $1.flowRate)) }
 
+        self.firstValve = "AA"
         self.storage = Dictionary(rawStorage, uniquingKeysWith: { lhs, _ in lhs })
         self.edges = Array(repeating: Int.min, count: self.storage.count * self.storage.count)
         self.indices = rawStorage.map(\.0)
@@ -87,6 +88,8 @@ struct CaveNetwork: Graph {
     }
 
     // MARK: - Querying
+
+    let firstValve: String
 
     var count: Int { self.storage.count }
     var indices: [Self.Index]

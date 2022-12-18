@@ -13,6 +13,8 @@ public struct PriorityQueue<Element: Comparable> {
         }
     }
 
+    public init() { }
+
     private var queue: Heap<ElementPriority> = Heap()
 
     public var count: Int { self.queue.count }

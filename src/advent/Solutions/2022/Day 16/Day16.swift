@@ -16,7 +16,9 @@ extension Solutions.Year2022 {
         @Argument(help: "puzzle input") var input: FilePath
 
         @Option(help: "time in minutes before the erruption") var timer: Int = 30
-        @Option(help: "starting valve") var startValve: String = "AA"
+
+        @Option(help: "number of elephants helping") var elephants: Int = 0
+        @Option(help: "time delay teaching helpers how to search") var teachingTime: Int = 0
 
         func run() throws {
             let data = try String(contentsOfFile: self.input.string)
@@ -24,12 +26,12 @@ extension Solutions.Year2022 {
                 fatalError("File did not contain cave layout data")
             }
 
-            let maxPressure = maxPressureReleasable(
+            let pressure = maxPressureReleasable(
                 in: network,
-                over: self.timer,
-                startingAt: self.startValve
+                over: self.timer - self.teachingTime,
+                startingAt: Array(repeating: network.firstValve, count: self.elephants + 1)
             )
-            print("Pressure over \(self.timer)m starting at ‘\(self.startValve)’: \(maxPressure)")
+            print("Pressure over \(self.timer)m starting at ‘\(network.firstValve)’: \(pressure)")
         }
 
         // MARK: - Puzzle Solution
@@ -37,45 +39,114 @@ extension Solutions.Year2022 {
         func maxPressureReleasable(
             in network: CaveNetwork,
             over time: Int,
-            startingAt valve: String,
+            startingAt startValves: [String],
             withOpened valves: TreeDictionary<String, Int> = [:],
-            accumulated pressure: Int = 0
+            landingIndex: TreeDictionary<Int, [String]> = [:]
         ) -> Int {
-            guard time > 0 else { return pressure }
-
-            let current = (network[valve] > 0 && valves[valve] == nil) ? [valve] : []
-            let valveCandidates = chain(current, network.neighbors(of: valve))
-                .filter {
-                    network[$0] > 0 && valves[$0] == nil
-                    && (time - network.distance(from: valve, to: $0) - 1 > 0)
+            let valveCandidates = startValves
+                .map { startValve in
+                    let withStart = network[startValve] > 0 && valves[startValve] == nil
+                        ? [startValve]
+                        : []
+                    let candidates = chain(withStart, network.neighbors(of: startValve))
+                        .filter {
+                            network[$0] > 0 && valves[$0] == nil
+                            && (time - network.distance(from: startValve, to: $0) - 1 > 0)
+                        }
+                    return (startValve: startValve, candidates: Set(candidates))
                 }
+                .filter { $0.candidates.count > 0 }
 
-            guard valveCandidates.count > 0 else {
-                return pressure + valves.values.reduce(0, +) * time
+            guard time > 0, valveCandidates.count > 0 else {
+                return valves.totalPressure(in: network)
             }
 
-            return valveCandidates
-                .reduce(0) { maxPressure, candidates in
-                    var candidateValves = valves
-                    candidateValves[candidates] = network[candidates]
-
-                    // Travel to the valve and open it
-                    let candidateDistance = network.distance(from: valve, to: candidates)
-                    let candidateTime = time - candidateDistance - 1
-
-                    // Pressure continues to release while traveling and opening the valve
-                    let candidatePressure = pressure
-                        + valves.values.reduce(0, +) * (candidateDistance + 1)
-
-                    let newPressure = maxPressureReleasable(
-                        in: network,
-                        over: candidateTime,
-                        startingAt: candidates,
-                        withOpened: candidateValves,
-                        accumulated: candidatePressure// + accumulatedPressure
-                    )
-                    return newPressure > maxPressure ? newPressure : maxPressure
+            let commonCandidates = valveCandidates
+                .reduce(valveCandidates[0].candidates) { acc, pair in
+                    let (_, candidates) = pair
+                    return acc.intersection(candidates)
                 }
+
+            let uncommonCandidates: [String: Set<String>] = Dictionary(
+                valveCandidates.compactMap { pair in
+                    let (startValve, candidates) = pair
+                    let uncommon = candidates.symmetricDifference(commonCandidates)
+                    guard uncommon.count > 0 else { return nil }
+                    return (startValve, uncommon)
+                },
+                uniquingKeysWith: { _, _ in fatalError("There should be no duplicates") }
+            )
+
+            let startCandidates = valveCandidates.map(\.startValve)
+
+            let permutations: any Sequence<[String]>
+            if valveCandidates.count == 1 {
+                permutations = commonCandidates.map { Array(arrayLiteral: $0) }
+            } else {
+                permutations = commonCandidates.uniquePermutations(ofCount: startCandidates.count)
+            }
+
+            let uncommonResults = uncommonCandidates
+                .flatMap { startValve, candidates in
+                    candidates.map { candidate in
+                        var nextOpened = valves
+                        var nextIndex = landingIndex
+
+                        let distance = network.distance(from: startValve, to: candidate)
+                        let emissionStart = time - distance - 1
+
+                        nextOpened[candidate] = emissionStart
+                        nextIndex[emissionStart, default: []].append(candidate)
+
+                        let (_, nextArrivalTime) = nextOpened
+                            .filter { $0.value < time }
+                            .max(by: { $0.value < $1.value })!
+
+                        let nextStart = nextIndex[nextArrivalTime, default: []]
+                        return maxPressureReleasable(
+                            in: network,
+                            over: nextArrivalTime,
+                            startingAt: nextStart,
+                            withOpened: nextOpened,
+                            landingIndex: nextIndex
+                        )
+                    }
+                }
+
+            let commonResults = permutations
+                .map { candidates in
+                    var nextOpened = valves
+                    var nextIndex = landingIndex
+
+                    zip(startCandidates, candidates).forEach { startValve, candidate in
+                        let distance = network.distance(from: startValve, to: candidate)
+                        let emissionStart = time - distance - 1
+
+                        nextOpened[candidate] = emissionStart
+                        nextIndex[emissionStart, default: []].append(candidate)
+                    }
+
+                    let (_, nextArrivalTime) = nextOpened
+                        .filter { $0.value < time }
+                        .max(by: { $0.value < $1.value })!
+
+                    let nextStart = nextIndex[nextArrivalTime, default: []]
+                    return maxPressureReleasable(
+                        in: network,
+                        over: nextArrivalTime,
+                        startingAt: nextStart,
+                        withOpened: nextOpened,
+                        landingIndex: nextIndex
+                    )
+                }
+
+            return chain(uncommonResults, commonResults).max() ?? 0
         }
+    }
+}
+
+private extension TreeDictionary where Key == CaveNetwork.Index, Value == CaveNetwork.Element {
+    func totalPressure(in network: CaveNetwork) -> Int {
+        return self.reduce(0) { $0 + network[$1.key] * $1.value}
     }
 }
