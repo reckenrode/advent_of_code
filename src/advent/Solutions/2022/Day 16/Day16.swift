@@ -43,8 +43,8 @@ extension Solutions.Year2022 {
             withOpened valves: TreeDictionary<String, Int> = [:],
             landingIndex: TreeDictionary<Int, [String]> = [:]
         ) -> Int {
-            let valveCandidates = startValves
-                .map { startValve in
+            let (valveCandidates, startCandidates): (Set<String>, [String]) = startValves
+                .reduce(into: (set: Set(), startValves: [])) { result, startValve in
                     let withStart = network[startValve] > 0 && valves[startValve] == nil
                         ? [startValve]
                         : []
@@ -53,94 +53,56 @@ extension Solutions.Year2022 {
                             network[$0] > 0 && valves[$0] == nil
                             && (time - network.distance(from: startValve, to: $0) - 1 > 0)
                         }
-                    return (startValve: startValve, candidates: Set(candidates))
+                    if candidates.count > 0 {
+                        result.startValves.append(startValve)
+                        candidates.forEach { result.set.insert($0) }
+                    }
                 }
-                .filter { $0.candidates.count > 0 }
 
             guard time > 0, valveCandidates.count > 0 else {
                 return valves.totalPressure(in: network)
             }
 
-            let commonCandidates = valveCandidates
-                .reduce(valveCandidates[0].candidates) { acc, pair in
-                    let (_, candidates) = pair
-                    return acc.intersection(candidates)
-                }
-
-            let uncommonCandidates: [String: Set<String>] = Dictionary(
-                valveCandidates.compactMap { pair in
-                    let (startValve, candidates) = pair
-                    let uncommon = candidates.symmetricDifference(commonCandidates)
-                    guard uncommon.count > 0 else { return nil }
-                    return (startValve, uncommon)
-                },
-                uniquingKeysWith: { _, _ in fatalError("There should be no duplicates") }
-            )
-
-            let startCandidates = valveCandidates.map(\.startValve)
-
             let permutations: any Sequence<[String]>
-            if valveCandidates.count == 1 {
-                permutations = commonCandidates.map { Array(arrayLiteral: $0) }
+            if startCandidates.count == 1 {
+                permutations = valveCandidates.map { Array(arrayLiteral: $0) }
+            } else if startCandidates.count == 2 {
+                let combinations = valveCandidates.combinations(ofCount: startCandidates.count)
+                permutations = Set(chain(combinations, combinations.map { [$0[1], $0[0]] }))
             } else {
-                permutations = commonCandidates.uniquePermutations(ofCount: startCandidates.count)
+                permutations = valveCandidates.uniquePermutations(ofCount: startCandidates.count)
             }
 
-            let uncommonResults = uncommonCandidates
-                .flatMap { startValve, candidates in
-                    candidates.map { candidate in
-                        var nextOpened = valves
-                        var nextIndex = landingIndex
+            return permutations.reduce(0) { best, candidates in
+                var nextOpened = valves
+                var nextIndex = landingIndex
 
-                        let distance = network.distance(from: startValve, to: candidate)
-                        let emissionStart = time - distance - 1
+                for (startValve, candidate) in zip(startCandidates, candidates) {
+                    let distance = network.distance(from: startValve, to: candidate)
+                    let emissionStart = time - distance - 1
 
-                        nextOpened[candidate] = emissionStart
-                        nextIndex[emissionStart, default: []].append(candidate)
+                    guard emissionStart > 0 else { return best }
 
-                        let (_, nextArrivalTime) = nextOpened
-                            .filter { $0.value < time }
-                            .max(by: { $0.value < $1.value })!
-
-                        let nextStart = nextIndex[nextArrivalTime, default: []]
-                        return maxPressureReleasable(
-                            in: network,
-                            over: nextArrivalTime,
-                            startingAt: nextStart,
-                            withOpened: nextOpened,
-                            landingIndex: nextIndex
-                        )
-                    }
+                    nextOpened[candidate] = emissionStart
+                    nextIndex[emissionStart, default: []].append(candidate)
                 }
 
-            let commonResults = permutations
-                .map { candidates in
-                    var nextOpened = valves
-                    var nextIndex = landingIndex
+                let (_, nextArrivalTime) = nextOpened
+                    .filter { $0.value < time }
+                    .max(by: { $0.value < $1.value })!
 
-                    zip(startCandidates, candidates).forEach { startValve, candidate in
-                        let distance = network.distance(from: startValve, to: candidate)
-                        let emissionStart = time - distance - 1
+                let nextStart = nextIndex[nextArrivalTime, default: []]
 
-                        nextOpened[candidate] = emissionStart
-                        nextIndex[emissionStart, default: []].append(candidate)
-                    }
+                let result = maxPressureReleasable(
+                    in: network,
+                    over: nextArrivalTime,
+                    startingAt: nextStart,
+                    withOpened: nextOpened,
+                    landingIndex: nextIndex
+                )
 
-                    let (_, nextArrivalTime) = nextOpened
-                        .filter { $0.value < time }
-                        .max(by: { $0.value < $1.value })!
-
-                    let nextStart = nextIndex[nextArrivalTime, default: []]
-                    return maxPressureReleasable(
-                        in: network,
-                        over: nextArrivalTime,
-                        startingAt: nextStart,
-                        withOpened: nextOpened,
-                        landingIndex: nextIndex
-                    )
-                }
-
-            return chain(uncommonResults, commonResults).max() ?? 0
+                return best < result ? result : best
+            }
         }
     }
 }
