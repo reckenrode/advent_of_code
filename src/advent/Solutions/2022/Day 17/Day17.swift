@@ -63,9 +63,8 @@ extension Solutions.Year2022 {
                     )
                 }
 
-                let result = field.findCycle()
                 if height == 0 {
-                    if let result {
+                    if let result = field.findCycle() {
                         guard let cycleStart = history[result.offset] else {
                             fatalError("Encountered a cycle start that is not in the history")
                         }
