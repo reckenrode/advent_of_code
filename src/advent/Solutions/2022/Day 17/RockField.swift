@@ -190,7 +190,9 @@ struct RockField {
     var fallingRock: (rock: Rock, position: Point)? = nil
 
     func findCycle() -> (offset: Int, size: Int)? {
-        let str = self.storage[..<self.height]
+        let sliceEndIndex = self.storage.index(self.storage.startIndex, offsetBy: self.height)
+
+        let str = self.storage[..<sliceEndIndex]
         let strCount = str.count
 
         var startIndex = str.startIndex
