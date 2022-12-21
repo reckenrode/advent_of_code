@@ -146,7 +146,6 @@ struct RockField {
         self.fallingRock = (rock, Point(x: 2, y: self.height + Self.dropOffset))
     }
 
-    /// Returns false if the rock does not exist or has stopped moving
     mutating func moveRock(_ direction: Rock.MovementDirection) {
         guard let obj = self.fallingRock else { return }
 
