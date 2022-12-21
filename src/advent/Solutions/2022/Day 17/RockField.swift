@@ -133,7 +133,7 @@ struct RockField {
                 | field.index(at: offset+2) << 8
                 | field.index(at: offset+3)
 
-            return (self.wordPattern &<< point.x) & slice != 0
+            return (self.wordPattern << point.x) & slice != 0
         }
     }
 
@@ -171,8 +171,11 @@ struct RockField {
         }
 
         let offset = point.y
-        var slice: UInt32 = self.index(at: offset)   << 24 | self.index(at: offset+1) << 16
-        slice |= self.index(at: offset+2) << 8 | self.index(at: offset+3)
+        var slice: UInt32 =
+              self.index(at: offset)   << 24
+            | self.index(at: offset+1) << 16
+            | self.index(at: offset+2) << 8
+            | self.index(at: offset+3)
         slice |= (rock.wordPattern << point.x)
 
         self.modify(at: point.y)   { $0 = UInt8(truncatingIfNeeded: slice >> 24) }
