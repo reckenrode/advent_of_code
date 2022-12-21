@@ -190,22 +190,27 @@ struct RockField {
     var fallingRock: (rock: Rock, position: Point)? = nil
 
     func findCycle() -> (offset: Int, size: Int)? {
-        let str = self.storage[..<self.height].map({ String(format: "%02x", $0) }).joined()
+        let str = self.storage[..<self.height]
         let strCount = str.count
 
         var startIndex = str.startIndex
         var segmentStart = str.index(startIndex, offsetBy: strCount / 2)
         let endIndex = segmentStart
 
+        var shouldMoveSecondSegment = false
+
         while startIndex < endIndex {
             if str[startIndex..<segmentStart] == str[segmentStart...] {
                 return (
-                    offset: str.distance(from: str.startIndex, to: startIndex) / 2,
-                    size: str.distance(from: startIndex, to: segmentStart) / 2
+                    offset: str.distance(from: str.startIndex, to: startIndex),
+                    size: str.distance(from: startIndex, to: segmentStart)
                 )
             }
-            startIndex = str.index(startIndex, offsetBy: 2)
-            segmentStart = str.index(segmentStart, offsetBy: 1)
+            startIndex = str.index(startIndex, offsetBy: 1)
+            segmentStart = shouldMoveSecondSegment
+                ? str.index(segmentStart, offsetBy: 1)
+                : segmentStart
+            shouldMoveSecondSegment.toggle()
         }
         return nil
     }
