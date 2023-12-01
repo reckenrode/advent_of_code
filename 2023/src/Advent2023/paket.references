@@ -1,0 +1,6 @@
+FParsec
+System.CommandLine
+System.CommandLine.NamingConventionBinder
+System.CommandLine.Rendering
+FSharpx.Extras
+FSharp.Control.TaskSeq

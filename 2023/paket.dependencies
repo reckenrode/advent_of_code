@@ -1,0 +1,17 @@
+source https://api.nuget.org/v3/index.json
+
+storage: none
+framework: net8.0
+
+nuget Expecto ~> 10.1
+nuget Expecto.FsCheck ~> 10.1.0-fscheck3
+nuget FParsec ~> 2.0.0-beta2
+nuget FsCheck ~> 3.0.0-rc1
+nuget FSharp.Control.TaskSeq ~> 0.4.0-alpha.1
+nuget FSharp.Core ~> 8.0
+nuget FSharpx.Extras ~> 3.1
+nuget Microsoft.NET.Test.Sdk ~> 17.9.0-preview-23531-01
+nuget System.CommandLine ~> 2.0.0-beta4.22272.1
+nuget System.CommandLine.NamingConventionBinder ~> 2.0.0-beta4.22272.1
+nuget System.CommandLine.Rendering ~> 0.4.0-alpha.22272.1
+nuget YoloDev.Expecto.TestSdk ~> 0.14.3

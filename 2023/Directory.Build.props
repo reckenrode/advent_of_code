@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <Product>Advent2023</Product>
+    <VersionPrefix>2023.11.30</VersionPrefix>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Copyright>Copyright © 2023 Randy Eckenrode</Copyright>
+    <Authors>Randy Eckenrode</Authors>
+    <Description>My Advent of Code solutions for 2023 — written in F#.</Description>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/reckenrode/advent_of_code</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+</Project>
