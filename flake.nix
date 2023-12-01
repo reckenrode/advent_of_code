@@ -1,7 +1,8 @@
 {
   description = "Advent of Code solutions";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=release-23.11";
+  # inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=release-23.11";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
 
   outputs = { self, nixpkgs }:
     let
