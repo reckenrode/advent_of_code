@@ -5,7 +5,7 @@ open System.CommandLine.Builder
 open System.CommandLine.Parsing
 open System.Reflection
 
-open Advent2023.Solutions.Support
+open Advent2023.Support
 
 let private builder =
     let assembly = Assembly.GetEntryAssembly ()
