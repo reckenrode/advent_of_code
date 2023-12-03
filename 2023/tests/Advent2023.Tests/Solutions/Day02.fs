@@ -29,10 +29,7 @@ let tests =
                 let expectedGames = [ 1; 2; 5 ]
                 let bag = { Red = 12; Green = 13; Blue = 14 }
 
-                let games =
-                    games
-                    |> filterValidGames bag
-                    |> List.map fst
+                let games = games |> filterValidGames bag |> List.map fst
 
                 Expect.equal games expectedGames "games are valid"
             }
