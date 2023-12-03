@@ -14,6 +14,12 @@ open FSharpx
 open FSharpx.Text
 
 
+let printErrorsAndExit errors exitCode (console: IConsole) =
+    for error in errors do
+        console.WriteLine (error)
+
+    exitCode
+
 let register (root: RootCommand) =
     let maybe = FSharpx.Option.maybe
 
@@ -76,3 +82,18 @@ module Command =
         )
 
         cmd
+
+module List =
+    open FParsec
+
+    let liftResult parsed =
+        parsed
+        |> List.fold
+            (fun result elem ->
+                match (result, elem) with
+                | Result.Ok xs, Success (result, _, _) -> Result.Ok (result :: xs)
+                | Result.Ok _, Failure (message, _, _) -> Result.Error [ message ]
+                | Result.Error errors, Success _ -> Result.Error errors
+                | Result.Error errors, Failure (message, _, _) -> Result.Error (message :: errors))
+            (Result.Ok [])
+        |> Result.bimap List.rev List.rev
