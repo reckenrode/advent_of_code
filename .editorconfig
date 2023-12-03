@@ -10,6 +10,7 @@ trim_trailing_whitespace = true
 [*.fs]
 indent_style = space
 indent_size = 4
+fsharp_experimental_elmish = true
 fsharp_space_before_member = true
 fsharp_space_before_class_constructor = true
 fsharp_space_before_uppercase_invocation = true
