@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <Product>Advent2023</Product>
-    <VersionPrefix>2023.12.2</VersionPrefix>
+    <VersionPrefix>2023.12.3</VersionPrefix>
   </PropertyGroup>
   <PropertyGroup>
     <Copyright>Copyright © 2023 Randy Eckenrode</Copyright>
