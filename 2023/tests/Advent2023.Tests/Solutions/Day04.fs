@@ -14,22 +14,22 @@ let tests =
         testList "Examples" [
             let cards =
                 [ { Id = 1
-                    Winners = [ 41; 48; 83; 86; 17 ]
+                    Winners = set [ 41; 48; 83; 86; 17 ]
                     Numbers = set [ 83; 86; 6; 31; 17; 9; 48; 53 ] }
                   { Id = 2
-                    Winners = [ 13; 32; 20; 16; 61 ]
+                    Winners = set [ 13; 32; 20; 16; 61 ]
                     Numbers = set [ 61; 30; 68; 82; 17; 32; 24; 19 ] }
                   { Id = 3
-                    Winners = [ 1; 21; 53; 59; 44 ]
+                    Winners = set [ 1; 21; 53; 59; 44 ]
                     Numbers = set [ 69; 82; 63; 72; 16; 21; 14; 1 ] }
                   { Id = 4
-                    Winners = [ 41; 92; 73; 84; 69 ]
+                    Winners = set [ 41; 92; 73; 84; 69 ]
                     Numbers = set [ 59; 84; 76; 51; 58; 5; 54; 83 ] }
                   { Id = 5
-                    Winners = [ 87; 83; 26; 28; 32 ]
+                    Winners = set [ 87; 83; 26; 28; 32 ]
                     Numbers = set [ 88; 30; 70; 12; 93; 22; 82; 36 ] }
                   { Id = 6
-                    Winners = [ 31; 18; 13; 56; 72 ]
+                    Winners = set [ 31; 18; 13; 56; 72 ]
                     Numbers = set [ 74; 77; 10; 23; 35; 67; 36; 11 ] } ]
 
             test "Part 1" {

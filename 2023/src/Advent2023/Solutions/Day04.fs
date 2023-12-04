@@ -13,11 +13,11 @@ open Advent2023.Support
 
 type Card =
     { Id: int32
-      Winners: List<int32>
+      Winners: Set<int32>
       Numbers: Set<int32> }
 
 module Card =
-    let matches c = Set.intersect (set c.Winners) c.Numbers
+    let matches c = Set.intersect c.Winners c.Numbers
 
     let score = matches >> Set.count >> ((+) -1) >> ((<<<) 1) >> (max 0)
 
@@ -48,7 +48,7 @@ module Parsers =
     let game =
         let header = pstring "Card" >>. spaces1 >>. pint32 .>> pchar ':'
 
-        let winners = sepEndBy pint32 spaces1
+        let winners = sepEndBy pint32 spaces1 |>> set
         let numbers = sepBy pint32 spaces1 |>> set
 
         header .>> spaces1 .>>. winners .>> pchar '|' .>> spaces .>>. numbers
