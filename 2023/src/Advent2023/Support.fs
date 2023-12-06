@@ -7,18 +7,28 @@ open System.CommandLine
 open System.CommandLine.NamingConventionBinder
 open System.IO
 open System.Reflection
+open System.Text
 open System.Threading.Tasks
 
+open FParsec
 open FSharp.Control
 open FSharpx
 open FSharpx.Text
 
 
+let printErrorAndExit error exitCode (console: IConsole) =
+    console.WriteLine error
+    exitCode
+
 let printErrorsAndExit errors exitCode (console: IConsole) =
     for error in errors do
-        console.WriteLine (error)
+        console.WriteLine error
 
     exitCode
+
+let runParserOnStream parser state (file: FileInfo) =
+    use stream = file.OpenRead ()
+    runParserOnStream parser state file.Name stream Encoding.UTF8
 
 let register (root: RootCommand) =
     let maybe = FSharpx.Option.maybe
@@ -56,8 +66,8 @@ let register (root: RootCommand) =
 
 let handleFailure (console: IConsole) =
     function
-    | Ok code -> code
-    | Error message ->
+    | Result.Ok code -> code
+    | Result.Error message ->
         console.Error.Write $"Error parsing file: {message}"
         1
 
@@ -84,8 +94,6 @@ module Command =
         cmd
 
 module List =
-    open FParsec
-
     let liftResult parsed =
         parsed
         |> List.fold
@@ -97,3 +105,9 @@ module List =
                 | Result.Error errors, Failure (message, _, _) -> Result.Error (message :: errors))
             (Result.Ok [])
         |> Result.bimap List.rev List.rev
+
+module ParserResult =
+    let toResult =
+        function
+        | Success (result, _, _) -> Result.Ok result
+        | Failure (message, _, _) -> Result.Error message
