@@ -5,10 +5,9 @@ module Advent2023.Solutions.Day5
 open System.CommandLine
 open System.IO
 open System.Numerics
-open System.Text
 
-open FParsec
 open FSharp.Control
+open FSharpx
 open FSharpx.Prelude
 
 open Advent2023.Support
@@ -133,6 +132,8 @@ let part2mapper mapping =
         optimize (mapped @ unmapped)
 
 module Parsers =
+    open FParsec
+
     let almanac =
         let many1Spaces = many1Chars (pchar ' ')
         let seeds = pstring "seeds: " >>. sepBy pint64 many1Spaces .>> newline
@@ -140,7 +141,7 @@ module Parsers =
         let header = manyCharsTill anyChar (pchar ' ') .>> pstring "map:" .>> newline
 
         let mapping =
-            pipe3 (pint64 .>> many1Spaces) (pint64 .>> many1Spaces) pint64 tuple3
+            pipe3 (pint64 .>> many1Spaces) (pint64 .>> many1Spaces) pint64 Prelude.tuple3
             .>> newline
 
         let mappingBlock = header .>>. many mapping
@@ -165,12 +166,12 @@ let run (options: Options) (console: IConsole) =
         use file = options.Input.OpenRead ()
 
         let parsedInput =
-            runParserOnStream Parsers.almanac () options.Input.Name file Encoding.UTF8
+            options.Input |> runParserOnStream Parsers.almanac () |> ParserResult.toResult
 
         return
             match parsedInput with
-            | Success ((seeds, mappings), _, _) -> console |> printSoilReport mappings seeds
-            | Failure (message, _, _) -> console |> printErrorsAndExit [ message ] 1
+            | Ok (seeds, mappings) -> console |> printSoilReport mappings seeds
+            | Error message -> console |> printErrorAndExit message 1
     }
 
 let command = Command.create "day5" "If You Give A Seed A Fertilizer" run
