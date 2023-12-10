@@ -8,6 +8,7 @@ open System.CommandLine.NamingConventionBinder
 open System.IO
 open System.Numerics
 open System.Reflection
+open System.Runtime.InteropServices
 open System.Text
 open System.Threading.Tasks
 
@@ -15,6 +16,7 @@ open FParsec
 open FSharp.Control
 open FSharpx
 open FSharpx.Text
+open Microsoft.FSharp.NativeInterop
 
 
 let printErrorAndExit error exitCode (console: IConsole) =
@@ -143,3 +145,11 @@ let inline lcm lhs rhs =
         max lhs rhs
     else
         lhs * rhs / gcd
+
+
+module Array2D =
+    let rows (arr: 'a[,]) =
+        seq {
+            for row in 0 .. Array2D.length2 arr - 1 do
+                yield arr[*,row]
+        }
