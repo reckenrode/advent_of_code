@@ -2,16 +2,13 @@
 
 module Advent2023.Support
 
-open System.CommandLine
 open System.IO
 open System.Numerics
 open System.Text
 
 open FParsec
 open FSharp.Control
-open FSharpx
 
-// FParsec helpers
 
 let runParserOnStream parser state (file: FileInfo) =
     use stream = file.OpenRead ()
@@ -21,12 +18,6 @@ let runParserOnStream parser state (file: FileInfo) =
         | Success (result, _, _) -> Result.Ok result
         | Failure (message, _, _) -> Result.Error message
 
-let handleFailure (console: IConsole) =
-    function
-    | Result.Ok code -> code
-    | Result.Error message ->
-        console.Error.Write $"Error parsing file: {message}"
-        1
 
 let rec lines (reader: TextReader) =
     taskSeq {
@@ -37,19 +28,6 @@ let rec lines (reader: TextReader) =
             yield! lines reader
     }
 
-
-module List =
-    let liftResult parsed =
-        parsed
-        |> List.fold
-            (fun result elem ->
-                match (result, elem) with
-                | Result.Ok xs, Success (result, _, _) -> Result.Ok (result :: xs)
-                | Result.Ok _, Failure (message, _, _) -> Result.Error [ message ]
-                | Result.Error errors, Success _ -> Result.Error errors
-                | Result.Error errors, Failure (message, _, _) -> Result.Error (message :: errors))
-            (Result.Ok [])
-        |> Result.bimap List.rev List.rev
 
 let inline gcd (lhs: 'a) (rhs: 'a) : 'a :> IBinaryInteger<'a> =
     let zero = 'a.Zero
