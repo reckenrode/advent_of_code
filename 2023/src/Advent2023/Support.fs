@@ -2,6 +2,7 @@
 
 module Advent2023.Support
 
+open System.CommandLine
 open System.IO
 open System.Numerics
 open System.Text
@@ -18,6 +19,10 @@ let runParserOnStream parser state (file: FileInfo) =
         | Success (result, _, _) -> Result.Ok result
         | Failure (message, _, _) -> Result.Error message
 
+type BasicOptions = { Input: FileInfo }
+
+let runSolution (f: IConsole -> 'a -> unit) p options (console: IConsole) =
+    task { return runParserOnStream p () options.Input |> Result.map (f console) }
 
 let rec lines (reader: TextReader) =
     taskSeq {
