@@ -89,15 +89,7 @@ let printGameInfo bag (console: IConsole) games =
     console.WriteLine $"Sum of the IDs of valid games: {sumIds}"
     console.WriteLine $"Sum of the powers: {sumPowers}"
 
+let defaultBag = { Red = 12; Green = 13; Blue = 14 }
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        let defaultBag = { Red = 12; Green = 13; Blue = 14 }
-        return
-            runParserOnStream Parsers.games () options.Input
-            |> Result.map (printGameInfo defaultBag console)
-    }
-
-let command = Command.create "day2" "Cube Conundrum" run
+let command =
+    Command.create "day2" "Cube Conundrum" (runSolution (printGameInfo defaultBag) Parsers.games)

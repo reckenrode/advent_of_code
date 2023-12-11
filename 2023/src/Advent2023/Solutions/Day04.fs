@@ -70,13 +70,5 @@ let printGameInfo (console: IConsole) game =
     console.WriteLine $"Total number of cards played in part 2: {List.length played}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.game () options.Input
-            |> Result.map (printGameInfo console)
-    }
-
-let command = Command.create "day4" "Scratchcards" run
+let command =
+    Command.create "day4" "Scratchcards" (runSolution printGameInfo Parsers.game)

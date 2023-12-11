@@ -160,13 +160,8 @@ let printSoilReport (console: IConsole) (seeds, mappings) =
     console.WriteLine $"Lowest location number for any seed in part 2: {lowestPart2.Start}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.almanac () options.Input
-            |> Result.map (printSoilReport console)
-    }
-
-let command = Command.create "day5" "If You Give A Seed A Fertilizer" run
+let command =
+    Command.create
+        "day5"
+        "If You Give A Seed A Fertilizer"
+        (runSolution printSoilReport Parsers.almanac)

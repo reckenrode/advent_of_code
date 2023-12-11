@@ -220,13 +220,5 @@ let printGameReport (console: IConsole) game =
     console.WriteLine $"Total winnings (with jokers): {winnings}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.game () options.Input
-            |> Result.map (printGameReport console)
-    }
-
-let command = Command.create "day7" "Camel Cards" run
+let command =
+    Command.create "day7" "Camel Cards" (runSolution printGameReport Parsers.game)

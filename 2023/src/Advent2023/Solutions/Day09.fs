@@ -49,13 +49,5 @@ let printReports (console: IConsole) reports =
     console.WriteLine $"Sum of prev values: {sums}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.reports () options.Input
-            |> Result.map (printReports console)
-    }
-
-let command = Command.create "day9" "Mirage Maintenance" run
+let command =
+    Command.create "day9" "Mirage Maintenance" (runSolution printReports Parsers.reports)

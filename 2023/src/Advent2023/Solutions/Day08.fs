@@ -119,13 +119,5 @@ let printMapTraversals (console: IConsole) map =
     console.WriteLine $"Steps required to read all nodes ending in Z: {steps}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.ghostMap () options.Input
-            |> Result.map (printMapTraversals console)
-    }
-
-let command = Command.create "day8" "Haunted Wasteland" run
+let command =
+    Command.create "day8" "Haunted Wasteland" (runSolution printMapTraversals Parsers.ghostMap)

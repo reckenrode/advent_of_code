@@ -52,13 +52,5 @@ let printRaceReport (console: IConsole) results =
     console.WriteLine $"Ways to win (multiplied together): {part2}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.races () options.Input
-            |> Result.map (printRaceReport console)
-    }
-
-let command = Command.create "day6" "Wait For It" run
+let command =
+    Command.create "day6" "Wait For It" (runSolution printRaceReport Parsers.races)

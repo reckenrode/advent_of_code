@@ -170,13 +170,5 @@ let printMazeInfo (console: IConsole) maze =
     console.WriteLine $"Cells inside pipeline walls: {numInside}"
 
 
-type Options = { Input: FileInfo }
-
-let run (options: Options) (console: IConsole) =
-    task {
-        return
-            runParserOnStream Parsers.maze () options.Input
-            |> Result.map (printMazeInfo console)
-    }
-
-let command = Command.create "day10" "Pipe Maze" run
+let command =
+    Command.create "day10" "Pipe Maze" (runSolution printMazeInfo Parsers.maze)
