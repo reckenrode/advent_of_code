@@ -174,8 +174,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.maze () options.Input
-        return parsed |> Result.map (printMazeInfo console)
+        return
+            runParserOnStream Parsers.maze () options.Input
+            |> Result.map (printMazeInfo console)
     }
 
 let command = Command.create "day10" "Pipe Maze" run

@@ -224,8 +224,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.game () options.Input
-        return parsed |> Result.map (printGameReport console)
+        return
+            runParserOnStream Parsers.game () options.Input
+            |> Result.map (printGameReport console)
     }
 
 let command = Command.create "day7" "Camel Cards" run

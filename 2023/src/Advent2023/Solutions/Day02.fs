@@ -94,10 +94,10 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.games () options.Input
         let defaultBag = { Red = 12; Green = 13; Blue = 14 }
-
-        return parsed |> Result.map (printGameInfo defaultBag console)
+        return
+            runParserOnStream Parsers.games () options.Input
+            |> Result.map (printGameInfo defaultBag console)
     }
 
 let command = Command.create "day2" "Cube Conundrum" run

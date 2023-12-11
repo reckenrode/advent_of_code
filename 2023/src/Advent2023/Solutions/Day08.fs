@@ -123,8 +123,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.ghostMap () options.Input
-        return parsed |> Result.map (printMapTraversals console)
+        return
+            runParserOnStream Parsers.ghostMap () options.Input
+            |> Result.map (printMapTraversals console)
     }
 
 let command = Command.create "day8" "Haunted Wasteland" run

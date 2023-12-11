@@ -164,8 +164,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.almanac () options.Input
-        return parsed |> Result.map (printSoilReport console)
+        return
+            runParserOnStream Parsers.almanac () options.Input
+            |> Result.map (printSoilReport console)
     }
 
 let command = Command.create "day5" "If You Give A Seed A Fertilizer" run

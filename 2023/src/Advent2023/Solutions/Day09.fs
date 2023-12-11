@@ -53,8 +53,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.reports () options.Input
-        return parsed |> Result.map (printReports console)
+        return
+            runParserOnStream Parsers.reports () options.Input
+            |> Result.map (printReports console)
     }
 
 let command = Command.create "day9" "Mirage Maintenance" run

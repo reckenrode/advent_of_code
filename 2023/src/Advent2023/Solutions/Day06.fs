@@ -56,8 +56,9 @@ type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsed = runParserOnStream Parsers.races () options.Input
-        return parsed |> Result.map (printRaceReport console)
+        return
+            runParserOnStream Parsers.races () options.Input
+            |> Result.map (printRaceReport console)
     }
 
 let command = Command.create "day6" "Wait For It" run
