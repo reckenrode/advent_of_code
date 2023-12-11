@@ -12,10 +12,6 @@ open Advent2023.Support
 
 
 [<Struct>]
-type Point = { X: int; Y: int }
-
-
-[<Struct>]
 type Maze = Maze of char[,]
 
 module Maze =

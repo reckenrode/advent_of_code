@@ -13,23 +13,6 @@ open Advent2023.CommandLine
 open Advent2023.Support
 
 
-type Point = { X: int; Y: int }
-
-module Point =
-    let x (pt: Point) = pt.X
-    let y (pt: Point) = pt.Y
-
-    let adjacentPoints pt =
-        [ { X = pt.X - 1; Y = pt.Y - 1 }
-          { X = pt.X; Y = pt.Y - 1 }
-          { X = pt.X + 1; Y = pt.Y - 1 }
-          { X = pt.X - 1; Y = pt.Y }
-          { X = pt.X + 1; Y = pt.Y }
-          { X = pt.X - 1; Y = pt.Y + 1 }
-          { X = pt.X; Y = pt.Y + 1 }
-          { X = pt.X + 1; Y = pt.Y + 1 } ]
-
-
 type Part = { Name: string; Location: Point }
 
 module Part =

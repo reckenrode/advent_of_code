@@ -72,3 +72,21 @@ module Array2D =
             for row in 0 .. Array2D.length2 arr - 1 do
                 yield arr[*, row]
         }
+
+
+[<Struct>]
+type Point = { X: int; Y: int }
+
+module Point =
+    let x (pt: Point) = pt.X
+    let y (pt: Point) = pt.Y
+
+    let adjacentPoints pt =
+        [ { X = pt.X - 1; Y = pt.Y - 1 }
+          { X = pt.X; Y = pt.Y - 1 }
+          { X = pt.X + 1; Y = pt.Y - 1 }
+          { X = pt.X - 1; Y = pt.Y }
+          { X = pt.X + 1; Y = pt.Y }
+          { X = pt.X - 1; Y = pt.Y + 1 }
+          { X = pt.X; Y = pt.Y + 1 }
+          { X = pt.X + 1; Y = pt.Y + 1 } ]
