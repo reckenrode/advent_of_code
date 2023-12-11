@@ -6,7 +6,6 @@ module Advent2023.Tests.Solutions.Day3
 open Expecto
 
 open Advent2023.Solutions.Day3
-open System
 
 [<Tests>]
 let tests =

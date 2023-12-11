@@ -6,8 +6,8 @@ open System.CommandLine
 open System.IO
 
 open FSharp.Control
-open FParsec
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -22,7 +22,7 @@ module Card =
     let score = matches >> Set.count >> ((+) -1) >> ((<<<) 1) >> (max 0)
 
 
-type Game = List<Card>
+type Game = list<Card>
 
 module Game =
     let play g =
@@ -45,7 +45,9 @@ module Game =
         play' [] g
 
 module Parsers =
-    let game =
+    open FParsec
+
+    let card<'a> : Parser<Card, 'a> =
         let header = pstring "Card" >>. spaces1 >>. pint32 .>> pchar ':'
 
         let winners = sepEndBy pint32 spaces1 |>> set
@@ -57,30 +59,23 @@ module Parsers =
               Winners = winners
               Numbers = numbers })
 
+    let game<'a> : Parser<Game, 'a> = sepBy card newline .>> eof
 
-let printGameInfo game (console: IConsole) =
+
+let printGameInfo (console: IConsole) game =
     let totalPoints = game |> List.map Card.score |> List.sum
     console.WriteLine $"Total points for part 1: {totalPoints}"
 
     let played = Game.play game
     console.WriteLine $"Total number of cards played in part 2: {List.length played}"
 
-    0
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        use file = options.Input.OpenRead ()
-        use reader = new StreamReader (file)
-        let! lines = TaskSeq.toListAsync (lines reader)
-
-        let parsedGame = lines |> List.map (run Parsers.game) |> List.liftResult
-
-        return
-            match parsedGame with
-            | Result.Ok game -> console |> printGameInfo game
-            | Result.Error messages -> console |> printErrorsAndExit messages 1
+        let parsed = runParserOnStream Parsers.game () options.Input
+        return parsed |> Result.map (printGameInfo console)
     }
 
 let command = Command.create "day4" "Scratchcards" run

@@ -7,6 +7,7 @@ open System.IO
 
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -36,7 +37,7 @@ module Parsers =
         pipe2 timeLine distLine List.zip |>> List.map (uncurry RaceResult.init) .>> eof
 
 
-let printRaceReport results (console: IConsole) =
+let printRaceReport (console: IConsole) results =
     let part1 = results |> List.map RaceResult.countWaysToBeat |> List.fold (*) 1L
     console.WriteLine $"Ways to win (multiplied together): {part1}"
 
@@ -50,20 +51,13 @@ let printRaceReport results (console: IConsole) =
 
     console.WriteLine $"Ways to win (multiplied together): {part2}"
 
-    0
-
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.races () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Result.Ok raceResults -> console |> printRaceReport raceResults
-            | Result.Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.races () options.Input
+        return parsed |> Result.map (printRaceReport console)
     }
 
 let command = Command.create "day6" "Wait For It" run

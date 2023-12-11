@@ -2,70 +2,24 @@
 
 module Advent2023.Support
 
-open System
 open System.CommandLine
-open System.CommandLine.NamingConventionBinder
 open System.IO
 open System.Numerics
-open System.Reflection
-open System.Runtime.InteropServices
 open System.Text
-open System.Threading.Tasks
 
 open FParsec
 open FSharp.Control
 open FSharpx
-open FSharpx.Text
-open Microsoft.FSharp.NativeInterop
 
-
-let printErrorAndExit error exitCode (console: IConsole) =
-    console.WriteLine error
-    exitCode
-
-let printErrorsAndExit errors exitCode (console: IConsole) =
-    for error in errors do
-        console.WriteLine error
-
-    exitCode
+// FParsec helpers
 
 let runParserOnStream parser state (file: FileInfo) =
     use stream = file.OpenRead ()
+
     runParserOnStream parser state file.Name stream Encoding.UTF8
-
-let register (root: RootCommand) =
-    let maybe = FSharpx.Option.maybe
-
-    let getDayNumber s =
-        maybe {
-            let! matchResult = Regex.tryMatch @"[A-Za-z](\d+)" s
-            let! day = List.tryHead matchResult.GroupValues
-            return! Option.ofBoolAndValue (Int32.TryParse day)
-        }
-        |> Option.defaultValue -1
-
-    let getCommand (t: Type) =
-        maybe {
-            let! props = t.GetProperties () |> Option.ofObj
-
-            let! cmd =
-                props
-                |> Seq.filter (fun (p: PropertyInfo) ->
-                    p.Name = "command" && p.PropertyType = typeof<Command>)
-                |> Seq.tryExactlyOne
-
-            return downcast cmd.GetValue null
-        }
-
-    let assembly = Assembly.GetExecutingAssembly ()
-
-    let commands =
-        assembly.GetTypes ()
-        |> Array.choose getCommand
-        |> Array.sortBy (fun (cmd: Command) -> getDayNumber cmd.Name)
-
-    commands |> Array.iter root.AddCommand
-    root
+    |> function
+        | Success (result, _, _) -> Result.Ok result
+        | Failure (message, _, _) -> Result.Error message
 
 let handleFailure (console: IConsole) =
     function
@@ -83,18 +37,6 @@ let rec lines (reader: TextReader) =
             yield! lines reader
     }
 
-module Command =
-    let create name description (handler: 'a -> IConsole -> Task<int>) =
-        let cmd = Command (name, description, Handler = CommandHandler.Create handler)
-
-        cmd.AddOption
-        <| Option<FileInfo> (
-            aliases = [| "-i"; "--input" |],
-            description = "the day’s input file",
-            IsRequired = true
-        )
-
-        cmd
 
 module List =
     let liftResult parsed =
@@ -108,12 +50,6 @@ module List =
                 | Result.Error errors, Failure (message, _, _) -> Result.Error (message :: errors))
             (Result.Ok [])
         |> Result.bimap List.rev List.rev
-
-module ParserResult =
-    let toResult =
-        function
-        | Success (result, _, _) -> Result.Ok result
-        | Failure (message, _, _) -> Result.Error message
 
 let inline gcd (lhs: 'a) (rhs: 'a) : 'a :> IBinaryInteger<'a> =
     let zero = 'a.Zero
@@ -151,5 +87,5 @@ module Array2D =
     let rows (arr: 'a[,]) =
         seq {
             for row in 0 .. Array2D.length2 arr - 1 do
-                yield arr[*,row]
+                yield arr[*, row]
         }

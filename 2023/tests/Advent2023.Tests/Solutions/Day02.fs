@@ -29,15 +29,14 @@ let tests =
                 let expectedGames = [ 1; 2; 5 ]
                 let bag = { Red = 12; Green = 13; Blue = 14 }
 
-                let games = games |> filterValidGames bag |> List.map fst
+                let games = games |> Game.filterValidGames bag |> List.map fst
 
                 Expect.equal games expectedGames "games are valid"
             }
 
             test "Part 2" {
                 let expectedPowers = [ 48; 12; 1560; 630; 36 ]
-                let bag = { Red = 12; Green = 13; Blue = 14 }
-                let powers = List.map calculatePower games
+                let powers = List.map Game.calculatePower games
                 Expect.equal powers expectedPowers "powers match"
             }
         ]

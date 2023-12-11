@@ -9,8 +9,8 @@ open System.Text.RegularExpressions
 
 open FSharp.Control
 
+open Advent2023.CommandLine
 open Advent2023.Support
-open Microsoft.FSharp.Data.UnitSystems.SI.UnitNames
 
 
 type Point = { X: int; Y: int }
@@ -20,14 +20,14 @@ module Point =
     let y (pt: Point) = pt.Y
 
     let adjacentPoints pt =
-        [ { pt with X = pt.X - 1; Y = pt.Y - 1 }
-          { pt with X = pt.X; Y = pt.Y - 1 }
-          { pt with X = pt.X + 1; Y = pt.Y - 1 }
-          { pt with X = pt.X - 1; Y = pt.Y }
-          { pt with X = pt.X + 1; Y = pt.Y }
-          { pt with X = pt.X - 1; Y = pt.Y + 1 }
-          { pt with X = pt.X; Y = pt.Y + 1 }
-          { pt with X = pt.X + 1; Y = pt.Y + 1 } ]
+        [ { X = pt.X - 1; Y = pt.Y - 1 }
+          { X = pt.X; Y = pt.Y - 1 }
+          { X = pt.X + 1; Y = pt.Y - 1 }
+          { X = pt.X - 1; Y = pt.Y }
+          { X = pt.X + 1; Y = pt.Y }
+          { X = pt.X - 1; Y = pt.Y + 1 }
+          { X = pt.X; Y = pt.Y + 1 }
+          { X = pt.X + 1; Y = pt.Y + 1 } ]
 
 
 type Part = { Name: string; Location: Point }
@@ -148,7 +148,7 @@ let run (options: Options) (console: IConsole) =
         let gearSum = gears |> List.map Gear.ratio |> List.sum
         console.WriteLine $"Sum of all gear ratios: {gearSum}"
 
-        return 0
+        return Ok ()
     }
 
 let command = Command.create "day3" "Gear Ratios" run

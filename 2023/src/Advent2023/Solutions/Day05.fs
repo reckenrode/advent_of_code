@@ -8,8 +8,8 @@ open System.Numerics
 
 open FSharp.Control
 open FSharpx
-open FSharpx.Prelude
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -131,6 +131,7 @@ let part2mapper mapping =
 
         optimize (mapped @ unmapped)
 
+
 module Parsers =
     open FParsec
 
@@ -148,7 +149,8 @@ module Parsers =
 
         seeds .>> newline .>>. (sepBy mappingBlock newline |>> Map.ofList) .>> eof
 
-let printSoilReport mappings seeds (console: IConsole) =
+
+let printSoilReport (console: IConsole) (seeds, mappings) =
     let part1solver = solver part1mapper mappings
     let lowestPart1 = seeds |> List.map part1solver |> List.min
     console.WriteLine $"Lowest location number for any seed in part 1: {lowestPart1}"
@@ -157,21 +159,13 @@ let printSoilReport mappings seeds (console: IConsole) =
     let lowestPart2 = part2solver (fromRanges seeds) |> List.head
     console.WriteLine $"Lowest location number for any seed in part 2: {lowestPart2.Start}"
 
-    0
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        use file = options.Input.OpenRead ()
-
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.almanac () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Ok (seeds, mappings) -> console |> printSoilReport mappings seeds
-            | Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.almanac () options.Input
+        return parsed |> Result.map (printSoilReport console)
     }
 
 let command = Command.create "day5" "If You Give A Seed A Fertilizer" run

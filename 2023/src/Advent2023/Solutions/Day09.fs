@@ -2,15 +2,13 @@
 
 module Advent2023.Solutions.Day9
 
-open System
-open System.Collections.Generic
 open System.CommandLine
 open System.IO
-open System.Numerics
 
 open FSharp.Control
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -32,6 +30,7 @@ module Report =
 
     let prevValue = List.rev >> nextValue
 
+
 module Parsers =
     open FParsec
 
@@ -40,7 +39,7 @@ module Parsers =
         sepEndBy report newline .>> eof
 
 
-let printReports reports (console: IConsole) =
+let printReports (console: IConsole) reports =
     let nextValues = List.map Report.nextValue reports
     let sums = nextValues |> List.sum
     console.WriteLine $"Sum of next values: {sums}"
@@ -49,19 +48,13 @@ let printReports reports (console: IConsole) =
     let sums = prevValues |> List.sum
     console.WriteLine $"Sum of prev values: {sums}"
 
-    0
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.reports () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Result.Ok reports -> console |> printReports reports
-            | Result.Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.reports () options.Input
+        return parsed |> Result.map (printReports console)
     }
 
 let command = Command.create "day9" "Mirage Maintenance" run

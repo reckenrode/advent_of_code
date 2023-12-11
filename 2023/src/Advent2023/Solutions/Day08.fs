@@ -5,8 +5,10 @@ module Advent2023.Solutions.Day8
 open System.CommandLine
 open System.IO
 
+open FParsec.CharParsers
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -21,6 +23,7 @@ type Node =
 module Node =
     let source n = n.Source
     let destinations n = n.Destinations
+
 
 [<Struct>]
 type GhostMap =
@@ -103,7 +106,7 @@ module Parsers =
         |>> (fun (trv, net) -> { Traversals = trv; Network = net })
 
 
-let printMapTraversals map (console: IConsole) =
+let printMapTraversals (console: IConsole) map =
     let steps = GhostMap.traverse [ "AAA" ] [ "ZZZ" ] map
     console.WriteLine $"Steps required to reach ZZZ: {steps}"
 
@@ -115,19 +118,13 @@ let printMapTraversals map (console: IConsole) =
     let steps = GhostMap.traverse starts ends map
     console.WriteLine $"Steps required to read all nodes ending in Z: {steps}"
 
-    0
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.ghostMap () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Result.Ok game -> console |> printMapTraversals game
-            | Result.Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.ghostMap () options.Input
+        return parsed |> Result.map (printMapTraversals console)
     }
 
 let command = Command.create "day8" "Haunted Wasteland" run

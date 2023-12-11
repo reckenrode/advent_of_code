@@ -39,7 +39,7 @@ let tests =
                               Destinations = ("ZZZ", "ZZZ") } ] } ]
 
                 let expectedSteps = [ 2L; 6L ]
-                let steps = List.map (GhostMap.traverse ["AAA"] ["ZZZ"]) maps
+                let steps = List.map (GhostMap.traverse [ "AAA" ] [ "ZZZ" ]) maps
                 Expect.equal steps expectedSteps "steps match"
             }
 
@@ -65,7 +65,7 @@ let tests =
                             Destinations = ("XXX", "XXX") } ] }
 
                 let expectedSteps = 6L
-                let steps = GhostMap.traverse ["11A"; "22A"] ["11Z"; "22Z"] map
+                let steps = GhostMap.traverse [ "11A"; "22A" ] [ "11Z"; "22Z" ] map
                 Expect.equal steps expectedSteps "steps match"
             }
         ]

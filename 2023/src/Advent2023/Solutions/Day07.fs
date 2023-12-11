@@ -8,6 +8,7 @@ open System.IO
 
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -173,11 +174,13 @@ module rec Hand =
 
     let ``type`` (hand: Hand) = hand.Type ()
 
+
 [<Struct>]
 type Play = { Hand: Hand; Bid: int64 }
 
 module Play =
     let init h b = { Hand = h; Bid = b }
+
 
 type Game = list<Play>
 
@@ -207,7 +210,7 @@ module Parsers =
     let game<'a> : Parser<list<Play>, 'a> = sepEndBy play newline .>> eof
 
 
-let printGameReport game (console: IConsole) =
+let printGameReport (console: IConsole) game =
     let ranking = Game.rank game
     let winnings = Game.calculateWinnings ranking
     console.WriteLine $"Total winnings: {winnings}"
@@ -215,20 +218,14 @@ let printGameReport game (console: IConsole) =
     let ranking = Game.rank (Game.enableJokerMode game)
     let winnings = Game.calculateWinnings ranking
     console.WriteLine $"Total winnings (with jokers): {winnings}"
-    0
 
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.game () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Result.Ok game -> console |> printGameReport game
-            | Result.Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.game () options.Input
+        return parsed |> Result.map (printGameReport console)
     }
 
 let command = Command.create "day7" "Camel Cards" run

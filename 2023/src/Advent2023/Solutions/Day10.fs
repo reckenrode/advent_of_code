@@ -7,6 +7,7 @@ open System.IO
 
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -161,27 +162,20 @@ module Parsers =
         maze .>> eof
 
 
-let printMazeInfo maze (console: IConsole) =
+let printMazeInfo (console: IConsole) maze =
     let struct (dist, _) = Maze.farthestPoint maze
     console.WriteLine $"Distance to farthest point: {dist}"
 
     let numInside = Maze.countInside maze
     console.WriteLine $"Cells inside pipeline walls: {numInside}"
 
-    0
-
 
 type Options = { Input: FileInfo }
 
 let run (options: Options) (console: IConsole) =
     task {
-        let parsedInput =
-            options.Input |> runParserOnStream Parsers.maze () |> ParserResult.toResult
-
-        return
-            match parsedInput with
-            | Result.Ok reports -> console |> printMazeInfo reports
-            | Result.Error message -> console |> printErrorAndExit message 1
+        let parsed = runParserOnStream Parsers.maze () options.Input
+        return parsed |> Result.map (printMazeInfo console)
     }
 
 let command = Command.create "day10" "Pipe Maze" run

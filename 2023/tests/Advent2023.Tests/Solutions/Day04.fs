@@ -5,7 +5,6 @@ module Advent2023.Tests.Solutions.Day4
 open Expecto
 
 open Advent2023.Solutions.Day4
-open System
 
 
 [<Tests>]

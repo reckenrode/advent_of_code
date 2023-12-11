@@ -8,6 +8,7 @@ open System.IO
 open FSharp.Control
 open FSharpx.Text
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -68,14 +69,14 @@ let run (options: Options) (console: IConsole) =
     task {
         use file = options.Input.OpenRead ()
         use reader = new StreamReader (file)
-        let lines = TaskSeq.toList (lines reader)
+        let! lines = TaskSeq.toListAsync (lines reader)
 
         let calibrationValues = calibrate lines
         let calibrationSum = calibrationValues |> List.sum
 
         printfn $"the sum of all of the calibration values: {calibrationSum}"
 
-        return 0
+        return Ok ()
     }
 
 let command = Command.create "day1" "Trebuchet?!" run
