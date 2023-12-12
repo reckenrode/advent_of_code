@@ -74,6 +74,13 @@ module Array2D =
         }
 
 
+module List =
+    let rec allPairings =
+        function
+        | [] -> []
+        | x :: xs -> [ yield! List.map (fun y -> (x, y)) xs; yield! allPairings xs ]
+
+
 [<Struct>]
 type Point<'a when IBinaryInteger<'a>> = { X: 'a; Y: 'a }
 
@@ -90,3 +97,6 @@ module Point =
           { X = pt.X - 'a.One; Y = pt.Y + 'a.One }
           { X = pt.X; Y = pt.Y + 'a.One }
           { X = pt.X + 'a.One; Y = pt.Y + 'a.One } ]
+
+    let taxicabDistance (lhs: Point<'a>) (rhs: Point<'a>) =
+        'a.Abs (lhs.X - rhs.X) + 'a.Abs (lhs.Y - rhs.Y)
