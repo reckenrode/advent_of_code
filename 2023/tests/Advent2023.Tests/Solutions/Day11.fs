@@ -6,8 +6,6 @@ open Expecto
 
 open Advent2023.Solutions.Day11
 
-// ..#..
-// ..............#
 [<Tests>]
 let tests =
     testList "Day 11" [
