@@ -75,18 +75,18 @@ module Array2D =
 
 
 [<Struct>]
-type Point = { X: int; Y: int }
+type Point<'a when IBinaryInteger<'a>> = { X: 'a; Y: 'a }
 
 module Point =
-    let x (pt: Point) = pt.X
-    let y (pt: Point) = pt.Y
+    let x = _.X
+    let y = _.Y
 
-    let adjacentPoints pt =
-        [ { X = pt.X - 1; Y = pt.Y - 1 }
-          { X = pt.X; Y = pt.Y - 1 }
-          { X = pt.X + 1; Y = pt.Y - 1 }
-          { X = pt.X - 1; Y = pt.Y }
-          { X = pt.X + 1; Y = pt.Y }
-          { X = pt.X - 1; Y = pt.Y + 1 }
-          { X = pt.X; Y = pt.Y + 1 }
-          { X = pt.X + 1; Y = pt.Y + 1 } ]
+    let adjacentPoints (pt: Point<'a>) =
+        [ { X = pt.X - 'a.One; Y = pt.Y - 'a.One }
+          { X = pt.X; Y = pt.Y - 'a.One }
+          { X = pt.X + 'a.One; Y = pt.Y - 'a.One }
+          { X = pt.X - 'a.One; Y = pt.Y }
+          { X = pt.X + 'a.One; Y = pt.Y }
+          { X = pt.X - 'a.One; Y = pt.Y + 'a.One }
+          { X = pt.X; Y = pt.Y + 'a.One }
+          { X = pt.X + 'a.One; Y = pt.Y + 'a.One } ]

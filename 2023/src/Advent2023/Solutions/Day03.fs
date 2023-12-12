@@ -13,7 +13,7 @@ open Advent2023.CommandLine
 open Advent2023.Support
 
 
-type Part = { Name: string; Location: Point }
+type Part = { Name: string; Location: Point<int> }
 
 module Part =
     let name (part: Part) = part.Name
@@ -22,7 +22,7 @@ module Part =
 
 type Number =
     { Value: int
-      Location: Point
+      Location: Point<int>
       Length: int }
 
 module Number =
@@ -38,7 +38,7 @@ module Number =
 
 
 type Gear =
-    { Location: Point
+    { Location: Point<int>
       PartNumbers: Number * Number }
 
 module Gear =
