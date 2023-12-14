@@ -67,6 +67,12 @@ let inline lcm lhs rhs =
 
 
 module Array2D =
+    let columns (arr: 'a[,]) =
+        seq {
+            for column in 0 .. Array2D.length1 arr - 1 do
+                yield arr[column, *]
+        }
+
     let rows (arr: 'a[,]) =
         seq {
             for row in 0 .. Array2D.length2 arr - 1 do
