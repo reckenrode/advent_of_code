@@ -3,6 +3,7 @@
 module Advent2023.Solutions.Day13
 
 open System
+open System.Collections.Generic
 open System.CommandLine
 
 open FSharpx
@@ -115,14 +116,15 @@ module Pattern =
         let newGrid = Array2D.copy p
 
         let points =
-            [ for x in 0 .. Array2D.length1 newGrid - 1 do
-                  for y in 0 .. Array2D.length2 newGrid - 1 do
-                      yield (x, y) ]
+            seq {
+                for x in 0 .. Array2D.length1 newGrid - 1 do
+                    for y in 0 .. Array2D.length2 newGrid - 1 do
+                        yield (x, y)
+            }
 
-        let rec loop grid =
-            function
-            | [] -> Pattern grid
-            | (x, y) :: pts ->
+        let rec loop grid (pts: IEnumerator<int * int>) =
+            if pts.MoveNext () then
+                let x, y = pts.Current
                 toggle grid x y
 
                 if hasNewMirror (Pattern grid) then
@@ -130,8 +132,10 @@ module Pattern =
                 else
                     toggle grid x y
                     loop grid pts
+            else
+                Pattern grid
 
-        loop newGrid points
+        points.GetEnumerator () |> loop newGrid
 
 
 module Parsers =
