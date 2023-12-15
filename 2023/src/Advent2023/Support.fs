@@ -66,6 +66,13 @@ let inline lcm lhs rhs =
         lhs * rhs / gcd
 
 
+let updateState f =
+    FSharpx.State.state {
+        let! s = FSharpx.State.getState
+        return! FSharpx.State.putState (f s)
+    }
+
+
 module Array2D =
     let columns (arr: 'a[,]) =
         seq {
@@ -106,3 +113,5 @@ module Point =
 
     let taxicabDistance (lhs: Point<'a>) (rhs: Point<'a>) =
         'a.Abs (lhs.X - rhs.X) + 'a.Abs (lhs.Y - rhs.Y)
+
+    let zero<'a when IBinaryInteger<'a>> = { X = 'a.Zero; Y = 'a.Zero }

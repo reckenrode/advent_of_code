@@ -39,12 +39,6 @@ module ConditionRecord =
         let regex = Regex @"(.)\1*"
         regex.Matches springs |> Seq.map classify |> Seq.toList
 
-    let private updateState f =
-        state {
-            let! s = State.getState
-            return! State.putState (f s)
-        }
-
     let private memoize f gs rs =
         state {
             let! memo = State.getState
