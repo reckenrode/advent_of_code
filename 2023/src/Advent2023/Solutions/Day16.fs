@@ -44,6 +44,10 @@ type Beam =
       Direction: Direction }
 
 module Beam =
+    let direction = _.Direction
+
+    let position = _.Position
+
     let move b =
         { b with
             Position = Direction.next b.Direction b.Position }
@@ -120,24 +124,27 @@ module Tiles =
         pt.X >= 0 && pt.X < width tiles && pt.Y >= 0 && pt.Y < height tiles
 
     let shoot b (Tiles tiles) =
-        let rec shoot' b tiles =
+        let rec shoot' bs tiles =
             state {
-                if isInBounds tiles b.Position then
-                    let! seenBeams = State.getState
-                    do! updateState (Set.add b)
+                let! seenBeams = State.getState
 
-                    if Set.contains b seenBeams then
-                        return ()
-                    else
-                        energize tiles b.Position
+                let newBeams =
+                    bs
+                    |> List.filter (fun x ->
+                        isInBounds tiles x.Position && not (Set.contains x seenBeams))
 
-                        for newBeam in reflect tiles b |> List.map Beam.move do
-                            do! shoot' newBeam tiles
+                do! updateState (flip (List.fold (flip Set.add)) newBeams)
+
+                List.iter (Beam.position >> energize tiles) newBeams
+                let newBeams = newBeams |> List.collect (reflect tiles) |> List.map Beam.move
+
+                if not (List.isEmpty newBeams) then
+                    return! shoot' newBeams tiles
             }
 
 
         let newTiles = Tiles (Array2D.copy tiles)
-        State.eval (shoot' b newTiles) Set.empty
+        State.eval (shoot' [ b ] newTiles) Set.empty
         newTiles
 
     let energized (Tiles tiles) =
