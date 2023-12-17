@@ -2,10 +2,12 @@
 
 module Advent2023.Solutions.Day16
 
+open System
 open System.CommandLine
-open Advent2023.CommandLine
+
 open FSharpx
 
+open Advent2023.CommandLine
 open Advent2023.Support
 
 
@@ -209,7 +211,11 @@ let printBeamResults (console: IConsole) tiles =
                    { Position = { X = Tiles.width tiles - 1; Y = y }
                      Direction = Left } |]
 
-    let results = initialBeams |> Seq.map (flip Tiles.shoot tiles)
+    let results =
+        initialBeams
+        |> Seq.chunkBySize Environment.ProcessorCount
+        |> Seq.collect (Array.Parallel.map (flip Tiles.shoot tiles))
+
     let best = results |> Seq.maxBy (Tiles.count TileType.Energized)
     printResult console best
 
