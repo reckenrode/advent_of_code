@@ -93,9 +93,34 @@ module List =
         | [] -> []
         | x :: xs -> [ yield! List.map (fun y -> (x, y)) xs; yield! allPairings xs ]
 
+    let optionals predicate lst = if predicate then lst else []
 
 [<Struct>]
-type Point<'a when IBinaryInteger<'a>> = { X: 'a; Y: 'a }
+type Point<'a when IBinaryInteger<'a>> =
+    { X: 'a
+      Y: 'a }
+
+    interface IAdditionOperators<Point<'a>, Point<'a>, Point<'a>> with
+        static member (+) (lhs, rhs) = Point<'a>.(+) (lhs, rhs)
+        static member op_CheckedAddition (lhs, rhs) = Point<'a>.op_CheckedAddition (lhs, rhs)
+
+    interface ISubtractionOperators<Point<'a>, Point<'a>, Point<'a>> with
+        static member (-) (lhs, rhs) = Point<'a>.(-) (lhs, rhs)
+        static member op_CheckedSubtraction (lhs, rhs) = Point<'a>.op_CheckedSubtraction (lhs, rhs)
+
+    static member (+) (lhs, rhs) =
+            { X = lhs.X + rhs.X; Y = lhs.Y + rhs.Y }
+
+    static member op_CheckedAddition (lhs, rhs) =
+            { X = 'a.op_CheckedAddition (lhs.X, rhs.X)
+              Y = 'a.op_CheckedAddition (rhs.Y, rhs.Y) }
+
+    static member (-) (lhs, rhs) =
+            { X = lhs.X - rhs.X; Y = lhs.Y - rhs.Y }
+
+    static member op_CheckedSubtraction (lhs, rhs) =
+            { X = 'a.op_CheckedSubtraction (lhs.X, rhs.X)
+              Y = 'a.op_CheckedSubtraction (rhs.Y, rhs.Y) }
 
 module Point =
     let x = _.X
