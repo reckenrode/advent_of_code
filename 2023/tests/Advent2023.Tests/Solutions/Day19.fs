@@ -4,6 +4,8 @@ module Advent2023.Tests.Solutions.Day19
 
 open Expecto
 
+open FSharpx
+
 open Advent2023.Solutions.Day19
 
 
@@ -52,6 +54,27 @@ let tests =
                     | Error message -> failwith message
 
                 Expect.equal acceptedParts expectedAcceptedParts "the expected parts were accepted"
+            }
+
+            let examples =
+                [ workflow
+                  Workflow.compile "example2" "in{a<2000:R,A}"
+                  Workflow.compile
+                      "example3"
+                      "r{x>1000:A,foo}\n\
+                      foo{m>5:R,A}\n\
+                      in{a<2000:q,A}\n\
+                      q{s<3000:R,r}" ]
+
+            test "Part 2" {
+                let expectedCombinations = [ 167409079868000L; 128064000000000L; 152085992995000L ]
+
+                let combinations =
+                    match Result.sequence examples with
+                    | Ok workflows -> List.map Workflow.countCombinations workflows
+                    | Error message -> failwith message
+
+                Expect.equal combinations expectedCombinations "the expected parts were accepted"
             }
         ]
     ]

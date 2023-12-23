@@ -2,6 +2,7 @@
 
 module Advent2023.Solutions.Day19
 
+open System
 open System.CommandLine
 
 open FSharpx
@@ -25,16 +26,36 @@ module Rating =
 
 
 [<Struct>]
+type RegisterRange = { Lower: int64; Upper: int64 }
+
+module RegisterRange =
+    let isValid r = r.Lower <= r.Upper
+    let count r = r.Upper - r.Lower + 1L
+
+[<Struct>]
 type RegisterFile =
     private
         { PC: int
-          Status: ValueOption<bool>
-          X: int64
-          M: int64
-          A: int64
-          S: int64 }
+          Status: voption<bool>
+          X: RegisterRange
+          M: RegisterRange
+          A: RegisterRange
+          S: RegisterRange }
 
-type Operation = RegisterFile -> RegisterFile
+module RegisterFile =
+    let isValid rf =
+        RegisterRange.isValid rf.X
+        && RegisterRange.isValid rf.M
+        && RegisterRange.isValid rf.A
+        && RegisterRange.isValid rf.S
+
+    let combinations rf =
+        RegisterRange.count rf.X
+        * RegisterRange.count rf.M
+        * RegisterRange.count rf.A
+        * RegisterRange.count rf.S
+
+type Operation = RegisterFile -> list<RegisterFile>
 
 [<Struct>]
 type Workflow =
@@ -46,37 +67,56 @@ module Workflow =
     module Parsers =
         open FParsec
 
+        let private lessThan lhs rhs =
+            ({ lhs with
+                Upper = min lhs.Upper (rhs - 1L) },
+             { lhs with Lower = max lhs.Lower rhs })
+
+        let private greaterThan lhs rhs =
+            let failed, passed = lessThan lhs (rhs + 1L)
+            passed, failed
+
         let identifier<'a> : Parser<string, 'a> = many1Chars asciiLetter
 
-        let register<'a> : Parser<_, 'a> =
+        let register<'a>
+            : Parser<(RegisterFile -> RegisterRange) *
+              (RegisterFile -> RegisterRange -> RegisterFile), 'a> =
             choice [
-                pchar 'x' >>. preturn _.X
-                pchar 'm' >>. preturn _.M
-                pchar 'a' >>. preturn _.A
-                pchar 's' >>. preturn _.S
+                pchar 'x' >>. preturn (_.X, (fun r x -> { r with X = x }))
+                pchar 'm' >>. preturn (_.M, (fun r m -> { r with M = m }))
+                pchar 'a' >>. preturn (_.A, (fun r a -> { r with A = a }))
+                pchar 's' >>. preturn (_.S, (fun r s -> { r with S = s }))
             ]
 
         let operator<'a> : Parser<_, 'a> =
-            choice [ pchar '>' >>. preturn (>); pchar '<' >>. preturn (<) ]
+            choice [ pchar '<' >>. preturn lessThan; pchar '>' >>. preturn greaterThan ]
 
         let number<'a> : Parser<_, 'a> = pint64
 
         let cmp<'a> : Parser<_, 'a> =
             let comparison =
-                pipe3 register operator number (fun reg op rhs -> reg >> (fun lhs -> op lhs rhs))
+                pipe3 register operator number (fun lens op rhs ->
+                    let get, set = lens
+
+                    fun registers ->
+                        let lhs = get registers
+                        let passed, failed = op lhs rhs
+                        set registers passed, set registers failed)
 
             pipe2 (comparison .>> (pchar ':')) identifier (fun cmp target symbols registers ->
-                if cmp registers then
-                    { registers with
-                        PC = Map.find target symbols }
-                else
-                    { registers with PC = registers.PC + 1 })
+                let passed, failed = cmp registers
+
+                [ if RegisterFile.isValid passed then
+                      { passed with
+                          PC = symbols |> Map.find target }
+                  if RegisterFile.isValid failed then
+                      { failed with PC = failed.PC + 1 } ])
 
         let jmp<'a> : Parser<_, 'a> =
             identifier
             |>> (fun target symbols registers ->
-                { registers with
-                    PC = Map.find target symbols })
+                [ { registers with
+                      PC = Map.find target symbols } ])
 
         let operation<'a> : Parser<_, 'a> = choice [ attempt cmp; jmp ]
 
@@ -114,13 +154,13 @@ module Workflow =
 
             memory[0] <-
                 fun registers ->
-                    { registers with
-                        Status = ValueSome true }
+                    [ { registers with
+                          Status = ValueSome true } ]
 
             memory[1] <-
                 fun registers ->
-                    { registers with
-                        Status = ValueSome false }
+                    [ { registers with
+                          Status = ValueSome false } ]
 
             rawMemory |> List.iteri (fun idx op -> memory[idx + 2] <- op symbols)
 
@@ -132,18 +172,40 @@ module Workflow =
     let init workflow rating =
         { PC = workflow.EntryPoint
           Status = ValueNone
-          A = rating.a
-          M = rating.m
-          S = rating.s
-          X = rating.x }
+          A = { Lower = rating.a; Upper = rating.a }
+          M = { Lower = rating.m; Upper = rating.m }
+          S = { Lower = rating.s; Upper = rating.s }
+          X = { Lower = rating.x; Upper = rating.x } }
+
+    let rec private runWorkflow workflow registers =
+        let rec loop accepted computations =
+            let finished, pending =
+                computations
+                |> List.collect (fun r -> Array.item r.PC workflow.MainMemory r)
+                |> List.partition (_.Status >> ValueOption.isSome)
+
+            let newlyAccepted = List.filter (_.Status >> ((=) (ValueSome true))) finished
+
+            if not (List.isEmpty pending) then
+                loop (newlyAccepted :: accepted) pending
+            else
+                newlyAccepted :: accepted
+
+        loop [] registers |> List.sumBy (List.map RegisterFile.combinations >> List.sum)
 
     let run workflow rating =
-        let rec loop registers =
-            match workflow.MainMemory[registers.PC]registers with
-            | { Status = ValueSome acceptance } -> acceptance
-            | registers -> loop registers
+        runWorkflow workflow [ init workflow rating ] = 1L
 
-        init workflow rating |> loop
+    let countCombinations workflow =
+        let registers =
+            { PC = workflow.EntryPoint
+              Status = ValueNone
+              X = { Lower = 1L; Upper = 4000L }
+              M = { Lower = 1L; Upper = 4000L }
+              A = { Lower = 1L; Upper = 4000L }
+              S = { Lower = 1L; Upper = 4000L } }
+
+        runWorkflow workflow [ registers ]
 
 
 module Parsers =
@@ -172,13 +234,14 @@ module Parsers =
 
 
 let printWorkflowResults (console: IConsole) workflow ratings =
-    let acceptedSums =
-        ratings
-        |> List.choose (fun rating ->
-            if Workflow.run workflow rating then Some rating else None)
-        |> List.sumBy Rating.sum
+    let accept rating =
+        if Workflow.run workflow rating then Some rating else None
 
+    let acceptedSums = ratings |> List.choose accept |> List.sumBy Rating.sum
     console.WriteLine $"Sum of part ratings that are accepted: {acceptedSums}"
+
+    let combinations = Workflow.countCombinations workflow
+    console.WriteLine $"Distinct combinations of ratings accepted: {combinations}"
 
 
 let run (options: BasicOptions) (console: IConsole) =
