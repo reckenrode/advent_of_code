@@ -2,7 +2,6 @@
 
 module Advent2023.Solutions.Day19
 
-open System
 open System.CommandLine
 
 open FSharpx
@@ -76,11 +75,9 @@ module Workflow =
             let failed, passed = lessThan lhs (rhs + 1L)
             passed, failed
 
-        let identifier<'a> : Parser<string, 'a> = many1Chars asciiLetter
+        let identifier<'a> : Parser<_, 'a> = many1Chars asciiLetter
 
-        let register<'a>
-            : Parser<(RegisterFile -> RegisterRange) *
-              (RegisterFile -> RegisterRange -> RegisterFile), 'a> =
+        let register<'a> : Parser<_ * (RegisterFile -> _ -> _), 'a> =
             choice [
                 pchar 'x' >>. preturn (_.X, (fun r x -> { r with X = x }))
                 pchar 'm' >>. preturn (_.M, (fun r m -> { r with M = m }))
@@ -120,11 +117,11 @@ module Workflow =
 
         let operation<'a> : Parser<_, 'a> = choice [ attempt cmp; jmp ]
 
-        let funcDefinition<'a> : Parser<string * _, 'a> =
+        let funcDefinition<'a> : Parser<_, 'a> =
             let ops = sepBy operation (pchar ',')
             identifier .>>. (between (pchar '{') (pchar '}') ops)
 
-        let workflow<'a> : Parser<list<_>, 'a> = sepEndBy1 funcDefinition newline
+        let workflow<'a> : Parser<_, 'a> = sepEndBy1 funcDefinition newline
 
         let parseWorkflow filename =
             runParserOnString workflow () filename
@@ -184,14 +181,19 @@ module Workflow =
                 |> List.collect (fun r -> Array.item r.PC workflow.MainMemory r)
                 |> List.partition (_.Status >> ValueOption.isSome)
 
-            let newlyAccepted = List.filter (_.Status >> ((=) (ValueSome true))) finished
+            let newlyAccepted =
+                finished
+                |> List.filter (_.Status >> ValueOption.defaultValue false)
+                |> List.sumBy RegisterFile.combinations
 
-            if not (List.isEmpty pending) then
-                loop (newlyAccepted :: accepted) pending
+            let accepted = accepted + newlyAccepted
+
+            if List.isEmpty pending then
+                accepted
             else
-                newlyAccepted :: accepted
+                loop accepted pending
 
-        loop [] registers |> List.sumBy (List.map RegisterFile.combinations >> List.sum)
+        loop 0L registers
 
     let run workflow rating =
         runWorkflow workflow [ init workflow rating ] = 1L

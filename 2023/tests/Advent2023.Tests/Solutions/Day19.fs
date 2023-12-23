@@ -64,10 +64,12 @@ let tests =
                       "r{x>1000:A,foo}\n\
                       foo{m>5:R,A}\n\
                       in{a<2000:q,A}\n\
-                      q{s<3000:R,r}" ]
+                      q{s<3000:R,r}"
+                  Workflow.compile "example4" "in{x<1:A,A}" ]
 
             test "Part 2" {
-                let expectedCombinations = [ 167409079868000L; 128064000000000L; 152085992995000L ]
+                let expectedCombinations =
+                    [ 167409079868000L; 128064000000000L; 152085992995000L; 256000000000000L ]
 
                 let combinations =
                     match Result.sequence examples with
